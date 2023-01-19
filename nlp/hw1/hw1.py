@@ -1,7 +1,10 @@
 from pathlib import PurePath
+
+import tokenizer
 from utils import loadDataTXT
 
-def main()  ->  None:
+
+def main() -> None:
     positiveDataFile: PurePath = PurePath("positiveSentiment.txt")
     negativeDataFile: PurePath = PurePath("negativeSentiment.txt")
 
@@ -9,6 +12,6 @@ def main()  ->  None:
     negativeDataFile: list = loadDataTXT(negativeDataFile)
 
 
-
 if __name__ == "__main__":
+    tokenizer.main()
     main()

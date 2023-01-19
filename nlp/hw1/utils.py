@@ -1,8 +1,10 @@
 from pathlib import PurePath
-from numpy.random import RandomState
-from numpy import ndarray
 
-def loadDataTXT(filepath: PurePath, keepSplit: float = 0.6, seed: int = 42)    ->  ndarray:
+from numpy import ndarray
+from numpy.random import RandomState
+
+
+def loadDataTXT(filepath: PurePath, keepSplit: float = 0.6, seed: int = 42) -> ndarray:
     random: RandomState = RandomState(seed)
 
     with open(filepath, "r") as dataFile:

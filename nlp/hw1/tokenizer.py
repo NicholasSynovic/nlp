@@ -1,9 +1,12 @@
-from utils import loadDataTXT
-from pathlib import PurePath
-from progress.bar import Bar
 from json import dump
+from pathlib import PurePath
 
-def createTokenSet(data: list)  ->  set:
+from progress.bar import Bar
+
+from utils import loadDataTXT
+
+
+def createTokenSet(data: list) -> set:
     tokenList: list = []
 
     with Bar("Generating token list...", max=len(data)) as bar:
@@ -19,7 +22,8 @@ def createTokenSet(data: list)  ->  set:
 
     return set(tokenList)
 
-def removeIntersection(set1: set, set2: set)    -> tuple:
+
+def removeIntersection(set1: set, set2: set) -> tuple:
     intersection: set = set1.intersection(set2)
 
     set1 = set1 - intersection
@@ -40,8 +44,8 @@ def main():
 
     positiveTokens, negativeTokens = removeIntersection(positiveTokens, negativeTokens)
 
-    positiveTokens: dict = {token : "positive" for token in positiveTokens}
-    negativeTokens: dict = {token : "negative" for token in negativeTokens}
+    positiveTokens: dict = {token: "positive" for token in positiveTokens}
+    negativeTokens: dict = {token: "negative" for token in negativeTokens}
 
     positiveTokens.update(negativeTokens)
     tokens: dict = positiveTokens
@@ -49,8 +53,6 @@ def main():
     with open("tokens.json", "w") as jsonFile:
         dump(tokens, jsonFile)
         jsonFile.close()
-
-
 
 
 if __name__ == "__main__":
