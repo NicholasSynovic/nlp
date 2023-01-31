@@ -79,7 +79,19 @@ def evaluate(
     falsePositive: float = len(fpLines) / len(positiveTest)
     falseNegative: float = len(fnLines) / len(negativeTest)
 
-    return (truePositive, trueNegative, falsePositive, falseNegative)
+    testingSize: int = len(positiveTest) + len(negativeTest)
+    generalAccuracy: float = (len(tpLines) + len(tnLines)) / testingSize
+    generalInaccuracy: float = 1 - generalAccuracy
+
+    return (
+        truePositive,
+        trueNegative,
+        falsePositive,
+        falseNegative,
+        testingSize,
+        generalAccuracy,
+        generalInaccuracy,
+    )
 
 
 def main() -> None:
@@ -108,10 +120,14 @@ def main() -> None:
 
     print(
         f"""
-        True Positive Score: {scores[0] * 100}%
-        True Negative Score: {scores[1] * 100}%
-        False Positive Score: {scores[2] * 100}%
-        False Negative Score: {scores[3] * 100}%
+        True Positive Score :   {scores[0] * 100}%
+        True Negative Score :   {scores[1] * 100}%
+        False Positive Score:   {scores[2] * 100}%
+        False Negative Score:   {scores[3] * 100}%
+
+        Total Testing Size  :   {scores[4]}
+        General Accuracy    :   {scores[5] * 100}%
+        General Inaccuracy  :   {scores[6] * 100}%
     """
     )
 
