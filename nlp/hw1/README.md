@@ -1,6 +1,6 @@
 # Homework 1
 
-> Nicholas M. Synovic
+> Author: Nicholas M. Synovic
 
 ## Table of Contents
 
