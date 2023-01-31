@@ -1,11 +1,13 @@
-from requests import get, Response
+from math import floor
 from pathlib import PurePath
 from typing import List, Tuple
-from numpy.random import RandomState
-from numpy import ndarray
-from math import floor
 
-def downloadData(url: str, filepath: PurePath)  -> None:
+from numpy import ndarray
+from numpy.random import RandomState
+from requests import Response, get
+
+
+def downloadData(url: str, filepath: PurePath) -> None:
     resp: Response = get(url)
 
     text: str = resp.content.decode(encoding="UTF-8")
@@ -16,7 +18,8 @@ def downloadData(url: str, filepath: PurePath)  -> None:
         sentiment.writelines(lines)
         sentiment.close()
 
-def tokenize(filepath: PurePath)    ->  Tuple[List[str], List[str]]:
+
+def tokenize(filepath: PurePath) -> Tuple[List[str], List[str]]:
     tokens: List[str] = []
     with open(file=filepath, mode="r") as sentiment:
         lines: List[str] = sentiment.readlines()
@@ -32,21 +35,26 @@ def tokenize(filepath: PurePath)    ->  Tuple[List[str], List[str]]:
 
     return tokens
 
-def main()  ->  None:
+
+def main() -> None:
     tokens: dict = {}
     positiveSentiment: PurePath = PurePath("positive")
     negativeSentiment: PurePath = PurePath("negative")
 
-    downloadData(url="https://raw.githubusercontent.com/dennybritz/cnn-text-classification-tf/master/data/rt-polaritydata/rt-polarity.pos", filepath=positiveSentiment)
-    downloadData(url="https://raw.githubusercontent.com/dennybritz/cnn-text-classification-tf/master/data/rt-polaritydata/rt-polarity.neg", filepath=negativeSentiment)
+    downloadData(
+        url="https://raw.githubusercontent.com/dennybritz/cnn-text-classification-tf/master/data/rt-polaritydata/rt-polarity.pos",
+        filepath=positiveSentiment,
+    )
+    downloadData(
+        url="https://raw.githubusercontent.com/dennybritz/cnn-text-classification-tf/master/data/rt-polaritydata/rt-polarity.neg",
+        filepath=negativeSentiment,
+    )
 
     positiveTokens: List[str] = splitData(filepath=positiveSentiment)
     # negativeTokens: List[str] = tokenize(filepath=negativeSentiment)
 
     # tokens["positive"] = positiveTokens
     # tokens["negative"] = negativeTokens
-
-
 
 
 if __name__ == "__main__":
