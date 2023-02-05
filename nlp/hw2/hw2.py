@@ -16,22 +16,23 @@ def downloadData(url: str, filepath: PurePath) -> None:
         sentiment.close()
 
 
-def loadData(filepath: PurePath, stopwords: PurePath) -> set[str]:
+def loadData(filepath: PurePath, stopWords: PurePath) -> set[str]:
+    """Loads data and removes stop words"""
     data: List[str]
-    stopwordsData: List[str]
+    stopWordsData: List[str]
 
     with open(filepath, "r") as dataFile:
         data = dataFile.readlines()
         dataFile.close()
 
-    with open(stopwords, "r") as stopwordsFile:
-        stopwordsData = stopwordsFile.readlines()
-        stopwordsFile.close()
+    with open(stopWords, "r") as stopWordsFile:
+        stopWordsData = stopWordsFile.readlines()
+        stopWordsFile.close()
 
     data = [d.strip() for d in data]
-    stopwordsData = [d.strip() for d in stopwordsData]
+    stopWordsData = [d.strip() for d in stopWordsData]
 
-    stopwordsSet: set[str] = set(stopwordsData)
+    stopWordsSet: set[str] = set(stopWordsData)
 
     idx: int
     for idx in range(len(data)):
@@ -39,7 +40,7 @@ def loadData(filepath: PurePath, stopwords: PurePath) -> set[str]:
             [token for token in data[idx].split(" ") if token.isalpha()]
         )
 
-        tokens = tokens - stopwordsSet
+        tokens = tokens - stopWordsSet
 
         data[idx] = " ".join(tokens)
 
@@ -49,7 +50,7 @@ def loadData(filepath: PurePath, stopwords: PurePath) -> set[str]:
 def main() -> None:
     positiveSentiment: PurePath = PurePath("positive")
     negativeSentiment: PurePath = PurePath("negative")
-    stopwords: PurePath = PurePath("stopwords")
+    stopWords: PurePath = PurePath("stopWords")
 
     downloadData(
         url="https://raw.githubusercontent.com/dennybritz/cnn-text-classification-tf/master/data/rt-polaritydata/rt-polarity.pos",
@@ -60,8 +61,8 @@ def main() -> None:
         filepath=negativeSentiment,
     )
 
-    positveData: List[str] = loadData(filepath=positiveSentiment, stopwords=stopwords)
-    negativeData: List[str] = loadData(filepath=negativeSentiment, stopwords=stopwords)
+    positveData: List[str] = loadData(filepath=positiveSentiment, stopWords=stopWords)
+    negativeData: List[str] = loadData(filepath=negativeSentiment, stopWords=stopWords)
 
 
 if __name__ == "__main__":
