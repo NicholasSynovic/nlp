@@ -18,7 +18,7 @@ def downloadData(url: str, filepath: PurePath) -> None:
 
 
 def loadData(filepath: PurePath, stopWords: PurePath) -> set[str]:
-    """Loads data and removes stop words"""
+    """Loads data and removes stop words + punctuation"""
     data: List[str]
     stopWordsData: List[str]
 
