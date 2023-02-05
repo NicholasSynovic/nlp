@@ -17,6 +17,9 @@
 The homework assignment description can be found in [hw2.pdf](hw2.pdf). The
 [`hw2.py`](hw2.py) script is the executable code to run to generate results.
 
+The [`stopwords`](stopwords) file is from
+[Ranks NL](https://www.ranks.nl/stopwords#idCenPoh5z2kLo6I6pe8CkMg).
+
 ## Dependencies
 
 To run this code, you will need:

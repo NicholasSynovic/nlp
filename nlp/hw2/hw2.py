@@ -19,6 +19,7 @@ def downloadData(url: str, filepath: PurePath) -> None:
 def main() -> None:
     positiveSentiment: PurePath = PurePath("positive")
     negativeSentiment: PurePath = PurePath("negative")
+    stopwords: PurePath = PurePath("stopwords")
 
     downloadData(
         url="https://raw.githubusercontent.com/dennybritz/cnn-text-classification-tf/master/data/rt-polaritydata/rt-polarity.pos",
