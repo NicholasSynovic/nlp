@@ -1,5 +1,6 @@
+from math import floor
 from pathlib import PurePath
-from typing import List
+from typing import List, Tuple
 
 from requests import Response, get
 
@@ -44,7 +45,21 @@ def loadData(filepath: PurePath, stopWords: PurePath) -> set[str]:
 
         data[idx] = " ".join(tokens)
 
-    return data
+    return set(data)
+
+
+def splitData(data: set[str]) -> Tuple[List[str], List[str], List[str]]:
+    data: List[str] = list(data)
+    dataLength: int = len(data)
+
+    trainingLastIdx: int = floor(dataLength * 0.7)
+    validationLastIdx: int = floor(dataLength * 0.85)
+
+    training: List[str] = data[0:trainingLastIdx]
+    validation: List[str] = data[trainingLastIdx:validationLastIdx]
+    testing: List[str] = data[validationLastIdx:-1]
+
+    return (training, validation, testing)
 
 
 def main() -> None:
@@ -61,8 +76,11 @@ def main() -> None:
         filepath=negativeSentiment,
     )
 
-    positveData: List[str] = loadData(filepath=positiveSentiment, stopWords=stopWords)
-    negativeData: List[str] = loadData(filepath=negativeSentiment, stopWords=stopWords)
+    positveData: set[str] = loadData(filepath=positiveSentiment, stopWords=stopWords)
+    negativeData: set[str] = loadData(filepath=negativeSentiment, stopWords=stopWords)
+
+    positiveSplits: Tuple[set[str], set[str], set[str]] = splitData(data=positveData)
+    negativeSplits: Tuple[set[str], set[str], set[str]] = splitData(data=negativeData)
 
 
 if __name__ == "__main__":
