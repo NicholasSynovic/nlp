@@ -1,5 +1,5 @@
 from collections import defaultdict
-from math import floor
+from math import floor, log10
 from pathlib import PurePath
 from typing import List, Tuple
 
@@ -63,6 +63,28 @@ def splitData(data: set[str]) -> Tuple[List[str], List[str], List[str]]:
     return (training, validation, testing)
 
 
+def computeDocumentFrequency(
+    positiveData: List[str], negativeData: List[str]
+) -> Tuple[float, float]:
+    data: List[str] = positiveData + negativeData
+
+    positiveClassLog = abs(log10(len(positiveData) / len(data)))
+    negativeClassLog = abs(log10(len(negativeData) / len(data)))
+
+    return (positiveClassLog, negativeClassLog)
+
+
+def createVocabulary(positiveData: List[str], negativeData: List[str]) -> List[str]:
+    vocab: List[str] = []
+    documents: List[str] = positiveData + negativeData
+
+    document: str
+    for document in documents:
+        vocab.extend(document.split(" "))
+
+    return vocab
+
+
 def computeWordFrequency(data: List[str]) -> Tuple[dict[str, int], int]:
     words: List[str] = []
     dataDict: defaultdict[str, int] = defaultdict(int)
@@ -84,6 +106,53 @@ def computeWordFrequency(data: List[str]) -> Tuple[dict[str, int], int]:
     return (dataDict, wordCount)
 
 
+def computeClassLikelihoods(
+    positiveData: dict[str, int],
+    negativeData: dict[str, int],
+    positiveWordFrequency: int,
+    negativeWordFrequency: int,
+    vocab: List[str],
+) -> dict[str, List[float, float]]:
+    data: dict[str, List[float, float]] = {word: [1, 1] for word in vocab}
+
+    word: str
+    for word in positiveData:
+        count: int = positiveData[word] + 1
+        positiveWordCount: int = positiveWordFrequency + 1
+        data[word][0] = abs(log10(count / positiveWordCount))
+
+    for word in negativeData:
+        count: int = negativeData[word] + 1
+        negativeWordCount: int = negativeWordFrequency + 1
+        data[word][1] = abs(log10(count / negativeWordCount))
+
+    return data
+
+
+def trainNaiveBayes(
+    positiveTrainingData: List[str], negativeTrainingData: List[str]
+) -> Tuple(dict[str, List[float, float]], List[str]):
+    bigVocab: List[str] = createVocabulary(
+        positiveData=positiveTrainingData, negativeData=negativeTrainingData
+    )
+
+    positiveWordFrequencies, totalPositiveWords = computeWordFrequency(
+        data=positiveTrainingData
+    )
+
+    negativeWordFrequencies, totalNegativeWords = computeWordFrequency(
+        data=negativeTrainingData
+    )
+
+    return (computeClassLikelihoods(
+        positiveData=positiveWordFrequencies,
+        negativeData=negativeWordFrequencies,
+        positiveWordFrequency=totalPositiveWords,
+        negativeWordFrequency=totalNegativeWords,
+        vocab=bigVocab,
+    ), bigVocab)
+
+
 def main() -> None:
     positiveTrainingData: List[str]
     positiveDevelopmentData: List[str]
@@ -97,6 +166,9 @@ def main() -> None:
     negativeTrainingFrequency: dict[str, int]
     positiveTrainingWordCount: int
     negativeTrainingWordCount: int
+
+    positiveDocumentLog: float
+    negativeDocumentLog: float
 
     positiveSentiment: PurePath = PurePath("positive")
     negativeSentiment: PurePath = PurePath("negative")
@@ -114,16 +186,18 @@ def main() -> None:
     positveData: set[str] = loadData(filepath=positiveSentiment, stopWords=stopWords)
     negativeData: set[str] = loadData(filepath=negativeSentiment, stopWords=stopWords)
 
-    positiveTrainingData, positiveDevelopmentData, positiveTestingData = splitData(data=positveData)
-    negativeTrainingData, negativeDevelopmentData, negativeTestingData = splitData(data=negativeData)
-
-    positiveTrainingFrequency, positiveTrainingWordCount = computeWordFrequency(
-        data=positiveSplits[0]
+    positiveTrainingData, positiveDevelopmentData, positiveTestingData = splitData(
+        data=positveData
+    )
+    negativeTrainingData, negativeDevelopmentData, negativeTestingData = splitData(
+        data=negativeData
     )
 
-    negativeTrainingFrequency, negativeTrainingWordCount = computeWordFrequency(
-        data=negativeSplits[0]
+    positiveDocumentLog, negativeDocumentLog = computeDocumentFrequency(
+        positiveData=positiveTrainingData, negativeData=negativeTrainingData
     )
+
+    classLikelihoods: dict[str, List[float, float]] = trainNaiveBayes(positiveTrainingData, negativeTrainingData)
 
 
 if __name__ == "__main__":
