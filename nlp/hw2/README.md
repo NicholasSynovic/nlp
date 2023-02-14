@@ -13,6 +13,7 @@
     - [Data Splitting](#data-splitting)
     - [Naive Bayes Implementation](#naive-bayes-implementation)
     - [Generating Vocabularly](#generating-vocabularly)
+    - [Computing Word Frequency](#computing-word-frequency)
   - [Results](#results)
 
 ## About
@@ -67,10 +68,10 @@ Negative Testing Data Size      : 799 (14.99343% of Negative Data)
 
 ### Naive Bayes Implementation
 
-> NOTE: Any `log` operations where done using Python's `math.log10` function
-
-> NOTE: This algorithm was first tested on the development datasets. Results for
-> these tests can be found in [Results](#results)
+> **NOTE**: Any `log` operations where done using Python's `math.log10` function
+>
+> **NOTE**: This algorithm was first tested on the development datasets. Results
+> for these tests can be found in [Results](#results)
 
 Following the algorithm description from
 [Figure 4.2 of the text](https://web.stanford.edu/~jurafsky/slp3/4.pdf#figure.4.2),

@@ -1,6 +1,6 @@
 from collections import defaultdict
 from json import dumps
-from math import floor, log
+from math import floor, log10
 from pathlib import PurePath
 from typing import List, Tuple
 
@@ -59,8 +59,8 @@ def computeDocumentFrequency(
 ) -> Tuple[float, float]:
     data: List[str] = positiveData + negativeData
 
-    positiveClassLog = log(len(positiveData) / len(data))
-    negativeClassLog = log(len(negativeData) / len(data))
+    positiveClassLog = log10(len(positiveData) / len(data))
+    negativeClassLog = log10(len(negativeData) / len(data))
 
     return (positiveClassLog, negativeClassLog)
 
@@ -84,13 +84,6 @@ def computeWordFrequency(data: List[str]) -> Tuple[dict[str, int], int]:
     for sentence in data:
         words.extend(sentence.split(" "))
 
-    # Upweighting first token
-    # for idx in range(len(words)):
-    #     if idx == 0:
-    #         dataDict[words[idx]] += 2
-    #     else:
-    #         dataDict[words[idx]] += 1
-
     word: str
     for word in words:
         dataDict[word] += 1
@@ -111,19 +104,31 @@ def computeClassLikelihoods(
     negativeWordFrequency: int,
     vocab: List[str],
 ) -> dict:
-    data: dict[str, List[float, float]] = {word: [0, 0] for word in vocab}
+    positiveLikelihood: dict[str, float] = {}
+    negativeLikelihood: dict[str, float] = {}
+
+    # d in set(vocab)}
 
     word: str
     for word in positiveData:
         count: int = positiveData[word] + 1
         positiveWordCount: int = positiveWordFrequency + 1
-        data[word][0] = log(count / positiveWordCount)
+        positiveLikelihood[word] = positiveLikelihood.get(
+            word, log10(count / positiveWordCount)
+        )
 
     for word in negativeData:
         count: int = negativeData[word] + 1
         negativeWordCount: int = negativeWordFrequency + 1
-        data[word][1] = log(count / negativeWordCount)
+        negativeLikelihood[word] = negativeLikelihood.get(
+            word, log10(count / negativeWordCount)
+        )
 
+    data = {
+        word: (positiveLikelihood.get(word), negativeLikelihood.get(word))
+        for word in vocab
+        if positiveLikelihood.get(word) != None and negativeLikelihood.get(word) != None
+    }
     return data
 
 
@@ -174,12 +179,14 @@ def testNaiveBayes(
             try:
                 positiveDocumentProbability += classLikelihoods[word][0]
             except KeyError:
-                positiveDocumentProbability += 0
+                pass
 
             try:
                 negativeDocumentProbability += classLikelihoods[word][1]
             except KeyError:
-                negativeDocumentProbability += 0
+                pass
+            except IndexError:
+                pass
 
         documentClass: int
         if positiveDocumentProbability > negativeDocumentProbability:
@@ -198,21 +205,26 @@ def testNaiveBayes(
 
 
 def computeAccuracy(test: dict) -> Tuple[float, float]:
-    tpDocumentCount: int = 0
-    fpDocumentCount: int = 0
+    properlyLabelledDocuments: int = 0
 
+    document: str
     for document in test:
-        if test[document][0] == test[document][1]:
-            tpDocumentCount += 1
-        else:
-            fpDocumentCount += 1
+        correctLabel: int = test[document][1]
+        if test[document][0] == correctLabel:
+            properlyLabelledDocuments += 1
 
-    totalDocumentCount: int = tpDocumentCount + fpDocumentCount
+    totalDocumentCount: int = len(test.keys())
 
-    return (
-        round((tpDocumentCount / totalDocumentCount) * 100, ndigits=5),
-        round((fpDocumentCount / totalDocumentCount) * 100, ndigits=5),
-    )
+    hitPercentage: float = properlyLabelledDocuments / totalDocumentCount
+    missPercentage: float = 1 - hitPercentage
+
+    hitPercentage *= 100
+    missPercentage *= 100
+
+    hitPercentage = round(hitPercentage, ndigits=5)
+    missPercentage = round(missPercentage, ndigits=5)
+
+    return (hitPercentage, missPercentage)
 
 
 def main() -> None:
@@ -255,13 +267,13 @@ def main() -> None:
 
     print(
         f"""
-    Positive Training Data Size     : {len(positiveTrainingData)} ({round((len(positiveTrainingData)/ len(positiveData)) * 100, ndigits=5)}% of Positive Data)
-    Positive Development Data Size  : {len(positiveDevelopmentData)} ({round((len(positiveDevelopmentData)/ len(positiveData)) * 100, ndigits=5)}% of Positive Data)
-    Positive Testing Data Size      : {len(positiveTestingData)} ({round((len(positiveTestingData)/ len(positiveData)) * 100, ndigits=5)}% of Positive Data)
+    Positive Training Doc. Size     : {len(positiveTrainingData)}   ({round((len(positiveTrainingData)/ len(positiveData)) * 100, ndigits=5)}% of Positive Docs)
+    Positive Development Doc. Size  : {len(positiveDevelopmentData)}    ({round((len(positiveDevelopmentData)/ len(positiveData)) * 100, ndigits=5)}% of Positive Docs)
+    Positive Testing Doc. Size      : {len(positiveTestingData)}    ({round((len(positiveTestingData)/ len(positiveData)) * 100, ndigits=5)}% of Positive Docs)
 
-    Negative Training Data Size     : {len(negativeTrainingData)} ({round((len(negativeTrainingData)/ len(negativeData)) * 100, ndigits=5)}% of Negative Data)
-    Negative Development Data Size  : {len(negativeDevelopmentData)} ({round((len(negativeDevelopmentData)/ len(negativeData)) * 100, ndigits=5)}% of Negative Data)
-    Negative Testing Data Size      : {len(negativeTestingData)} ({round((len(negativeTestingData)/ len(negativeData)) * 100, ndigits=5)}% of Negative Data)
+    Negative Training Doc. Size     : {len(negativeTrainingData)}   ({round((len(negativeTrainingData)/ len(negativeData)) * 100, ndigits=5)}% of Negative Docs)
+    Negative Development Doc. Size  : {len(negativeDevelopmentData)}    ({round((len(negativeDevelopmentData)/ len(negativeData)) * 100, ndigits=5)}% of Negative Docs)
+    Negative Testing Doc. Size      : {len(negativeTestingData)}    ({round((len(negativeTestingData)/ len(negativeData)) * 100, ndigits=5)}% of Negative Docs)
     """
     )
 
@@ -299,8 +311,21 @@ def main() -> None:
         jsonFile.write(jsonData)
         jsonFile.close()
 
-    positiveTrainingData.extend(positiveDevelopmentData)
-    negativeTrainingData.extend(negativeDevelopmentData)
+    positiveAccuracy: Tuple = computeAccuracy(test=positiveDevelopmentTest)
+    negativeAccuracy: Tuple = computeAccuracy(test=negativeDevelopmentTest)
+
+    print(
+        f"""
+    True Positive   (dev)   : {positiveAccuracy[0]}%
+    False Positive  (dev)   : {positiveAccuracy[1]}%
+
+    True Negative   (dev)   : {negativeAccuracy[0]}%
+    False Negative  (dev)   : {negativeAccuracy[1]}%
+    """
+    )
+
+    positiveTrainingData = positiveTrainingData + positiveDevelopmentData
+    negativeTrainingData = negativeTrainingData + negativeDevelopmentData
 
     positiveDocumentLog, negativeDocumentLog = computeDocumentFrequency(
         positiveData=positiveTrainingData, negativeData=negativeTrainingData
