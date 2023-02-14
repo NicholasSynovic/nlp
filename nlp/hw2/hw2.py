@@ -19,31 +19,21 @@ def downloadData(url: str, filepath: PurePath) -> None:
         sentiment.close()
 
 
-def loadData(filepath: PurePath, stopWords: PurePath) -> set[str]:
-    """Loads data and removes stop words + punctuation"""
+def loadData(filepath: PurePath) -> set[str]:
+    """Loads data and removes punctuation"""
     data: List[str]
-    stopWordsData: List[str]
 
     with open(filepath, "r") as dataFile:
         data = dataFile.readlines()
         dataFile.close()
 
-    with open(stopWords, "r") as stopWordsFile:
-        stopWordsData = stopWordsFile.readlines()
-        stopWordsFile.close()
-
     data = [d.strip() for d in data]
-    stopWordsData = [d.strip() for d in stopWordsData]
-
-    stopWordsSet: set[str] = set(stopWordsData)
 
     idx: int
     for idx in range(len(data)):
         tokens: List[str] = set(
             [token for token in data[idx].split(" ") if token.isalpha()]
         )
-
-        tokens = tokens - stopWordsSet
 
         data[idx] = " ".join(tokens)
 
@@ -93,6 +83,13 @@ def computeWordFrequency(data: List[str]) -> Tuple[dict[str, int], int]:
     sentence: str
     for sentence in data:
         words.extend(sentence.split(" "))
+
+    # Upweighting first token
+    # for idx in range(len(words)):
+    #     if idx == 0:
+    #         dataDict[words[idx]] += 2
+    #     else:
+    #         dataDict[words[idx]] += 1
 
     word: str
     for word in words:
@@ -200,6 +197,24 @@ def testNaiveBayes(
     return data
 
 
+def computeAccuracy(test: dict) -> Tuple[float, float]:
+    tpDocumentCount: int = 0
+    fpDocumentCount: int = 0
+
+    for document in test:
+        if test[document][0] == test[document][1]:
+            tpDocumentCount += 1
+        else:
+            fpDocumentCount += 1
+
+    totalDocumentCount: int = tpDocumentCount + fpDocumentCount
+
+    return (
+        round((tpDocumentCount / totalDocumentCount) * 100, ndigits=5),
+        round((fpDocumentCount / totalDocumentCount) * 100, ndigits=5),
+    )
+
+
 def main() -> None:
     positiveTrainingData: List[str]
     positiveDevelopmentData: List[str]
@@ -217,7 +232,6 @@ def main() -> None:
 
     positiveSentiment: PurePath = PurePath("positive")
     negativeSentiment: PurePath = PurePath("negative")
-    stopWords: PurePath = PurePath("stopWords")
 
     downloadData(
         url="https://raw.githubusercontent.com/dennybritz/cnn-text-classification-tf/master/data/rt-polaritydata/rt-polarity.pos",
@@ -228,8 +242,8 @@ def main() -> None:
         filepath=negativeSentiment,
     )
 
-    positiveData: set[str] = loadData(filepath=positiveSentiment, stopWords=stopWords)
-    negativeData: set[str] = loadData(filepath=negativeSentiment, stopWords=stopWords)
+    positiveData: set[str] = loadData(filepath=positiveSentiment)
+    negativeData: set[str] = loadData(filepath=negativeSentiment)
 
     positiveTrainingData, positiveDevelopmentData, positiveTestingData = splitData(
         data=positiveData
@@ -241,13 +255,13 @@ def main() -> None:
 
     print(
         f"""
-    Positive Training Data Size: {len(positiveTrainingData)} ({round((len(positiveTrainingData)/ len(positiveData)) * 100, ndigits=5)}% of Positive Data)
-    Positive Development Data Size: {len(positiveDevelopmentData)} ({round((len(positiveDevelopmentData)/ len(positiveData)) * 100, ndigits=5)}% of Positive Data)
-    Positive Testing Data Size: {len(positiveTestingData)} ({round((len(positiveTestingData)/ len(positiveData)) * 100, ndigits=5)}% of Positive Data)
+    Positive Training Data Size     : {len(positiveTrainingData)} ({round((len(positiveTrainingData)/ len(positiveData)) * 100, ndigits=5)}% of Positive Data)
+    Positive Development Data Size  : {len(positiveDevelopmentData)} ({round((len(positiveDevelopmentData)/ len(positiveData)) * 100, ndigits=5)}% of Positive Data)
+    Positive Testing Data Size      : {len(positiveTestingData)} ({round((len(positiveTestingData)/ len(positiveData)) * 100, ndigits=5)}% of Positive Data)
 
-    Negative Training Data Size: {len(negativeTrainingData)} ({round((len(negativeTrainingData)/ len(negativeData)) * 100, ndigits=5)}% of Negative Data)
-    Negative Development Data Size: {len(negativeDevelopmentData)} ({round((len(negativeDevelopmentData)/ len(negativeData)) * 100, ndigits=5)}% of Negative Data)
-    Negative Testing Data Size: {len(negativeTestingData)} ({round((len(negativeTestingData)/ len(negativeData)) * 100, ndigits=5)}% of Negative Data)
+    Negative Training Data Size     : {len(negativeTrainingData)} ({round((len(negativeTrainingData)/ len(negativeData)) * 100, ndigits=5)}% of Negative Data)
+    Negative Development Data Size  : {len(negativeDevelopmentData)} ({round((len(negativeDevelopmentData)/ len(negativeData)) * 100, ndigits=5)}% of Negative Data)
+    Negative Testing Data Size      : {len(negativeTestingData)} ({round((len(negativeTestingData)/ len(negativeData)) * 100, ndigits=5)}% of Negative Data)
     """
     )
 
@@ -321,6 +335,19 @@ def main() -> None:
         jsonData: str = dumps(obj=negativeTest, indent=4)
         jsonFile.write(jsonData)
         jsonFile.close()
+
+    positiveAccuracy: Tuple = computeAccuracy(test=positiveTest)
+    negativeAccuracy: Tuple = computeAccuracy(test=negativeTest)
+
+    print(
+        f"""
+    True Positive   : {positiveAccuracy[0]}%
+    False Positive  : {positiveAccuracy[1]}%
+
+    True Negative   : {negativeAccuracy[0]}%
+    False Negative  : {negativeAccuracy[1]}%
+    """
+    )
 
 
 if __name__ == "__main__":
