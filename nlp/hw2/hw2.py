@@ -1,6 +1,7 @@
 from math import floor
 from pathlib import PurePath
 from typing import List, Tuple
+from collections import defaultdict
 
 from requests import Response, get
 
@@ -62,7 +63,34 @@ def splitData(data: set[str]) -> Tuple[List[str], List[str], List[str]]:
     return (training, validation, testing)
 
 
+def computeWordFrequency(data: List[str])   -> Tuple[dict[str, int], int]:
+    words: List[str] = []
+    dataDict: defaultdict[str, int] = defaultdict(int)
+
+    sentence: str
+    for sentence in data:
+        words.extend(sentence.split(" "))
+
+    word: str
+    for word in words:
+        dataDict[word] += 1
+
+    dataDict: dict[str, int] = dict(dataDict)
+
+    wordCount: int = 0
+    for word in dataDict:
+        wordCount += dataDict[word]
+
+    return (dataDict, wordCount)
+
+
+
 def main() -> None:
+    positiveTrainingFrequency: dict[str, int]
+    negativeTrainingFrequency: dict[str, int]
+    positiveTrainingWordCount: int
+    negativeTrainingWordCount: int
+
     positiveSentiment: PurePath = PurePath("positive")
     negativeSentiment: PurePath = PurePath("negative")
     stopWords: PurePath = PurePath("stopWords")
@@ -82,7 +110,9 @@ def main() -> None:
     positiveSplits: Tuple[set[str], set[str], set[str]] = splitData(data=positveData)
     negativeSplits: Tuple[set[str], set[str], set[str]] = splitData(data=negativeData)
 
-    # TODO: Implement naive bayes classifier
+    positiveTrainingFrequency, positiveTrainingWordCount = computeWordFrequency(data=positiveSplits[0])
+
+    negativeTrainingFrequency, negativeTrainingWordCount = computeWordFrequency(data=negativeSplits[0])
 
 
 if __name__ == "__main__":
