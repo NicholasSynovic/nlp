@@ -1,0 +1,14 @@
+Positive Training Data Size     : 3731 (69.98687% of Positive Data)
+Positive Development Data Size  : 800 (15.00657% of Positive Data)
+Positive Testing Data Size      : 799 (14.98781% of Positive Data)
+
+Negative Training Data Size     : 3730 (69.99437% of Negative Data)
+Negative Development Data Size  : 799 (14.99343% of Negative Data)
+Negative Testing Data Size      : 799 (14.99343% of Negative Data)
+
+
+True Positive   : 53.81727%
+False Positive  : 46.18273%
+
+True Negative   : 53.4418%
+False Negative  : 46.5582%
