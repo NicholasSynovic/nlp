@@ -112,7 +112,7 @@ def computeClassLikelihoods(
     positiveWordFrequency: int,
     negativeWordFrequency: int,
     vocab: List[str],
-) -> dict[str, List[float, float]]:
+) -> dict:
     data: dict[str, List[float, float]] = {word: [1, 1] for word in vocab}
 
     word: str
@@ -131,7 +131,7 @@ def computeClassLikelihoods(
 
 def trainNaiveBayes(
     positiveTrainingData: List[str], negativeTrainingData: List[str]
-) -> Tuple(dict[str, List[float, float]], List[str]):
+) -> Tuple:
     bigVocab: List[str] = createVocabulary(
         positiveData=positiveTrainingData, negativeData=negativeTrainingData
     )
@@ -144,13 +144,59 @@ def trainNaiveBayes(
         data=negativeTrainingData
     )
 
-    return (computeClassLikelihoods(
-        positiveData=positiveWordFrequencies,
-        negativeData=negativeWordFrequencies,
-        positiveWordFrequency=totalPositiveWords,
-        negativeWordFrequency=totalNegativeWords,
-        vocab=bigVocab,
-    ), bigVocab)
+    return (
+        computeClassLikelihoods(
+            positiveData=positiveWordFrequencies,
+            negativeData=negativeWordFrequencies,
+            positiveWordFrequency=totalPositiveWords,
+            negativeWordFrequency=totalNegativeWords,
+            vocab=bigVocab,
+        ),
+        bigVocab,
+    )
+
+
+def testNaiveBayes(
+    testingData: List[str],
+    testingClass: int,
+    classLikelihoods: dict,
+    positiveClassLog: float,
+    negativeClassLog: float,
+) -> dict[str, int, int, float, float]:
+    data: dict = {}
+
+    document: str
+    for document in testingData:
+        positiveDocumentProbability: float = positiveClassLog
+        negativeDocumentProbability: float = negativeClassLog
+        words: List[str] = document.split(" ")
+
+        word: str
+        for word in words:
+            try:
+                positiveDocumentProbability += classLikelihoods[word][0]
+            except KeyError:
+                positiveDocumentProbability += 0
+
+            try:
+                negativeDocumentProbability += classLikelihoods[word][1]
+            except KeyError:
+                negativeDocumentProbability += 0
+
+        documentClass: int
+        if positiveDocumentProbability > negativeDocumentProbability:
+            documentClass = 1
+        else:
+            documentClass = 0
+
+        data[document] = [
+            documentClass,
+            testingClass,
+            positiveDocumentProbability,
+            negativeDocumentProbability,
+        ]
+
+    return data
 
 
 def main() -> None:
@@ -162,13 +208,11 @@ def main() -> None:
     negativeDevelopmentData: List[str]
     negativeTestingData: List[str]
 
-    positiveTrainingFrequency: dict[str, int]
-    negativeTrainingFrequency: dict[str, int]
-    positiveTrainingWordCount: int
-    negativeTrainingWordCount: int
-
     positiveDocumentLog: float
     negativeDocumentLog: float
+
+    classLikelihoods: dict[str, List[float, float]]
+    vocab: List[str]
 
     positiveSentiment: PurePath = PurePath("positive")
     negativeSentiment: PurePath = PurePath("negative")
@@ -183,21 +227,79 @@ def main() -> None:
         filepath=negativeSentiment,
     )
 
-    positveData: set[str] = loadData(filepath=positiveSentiment, stopWords=stopWords)
+    positiveData: set[str] = loadData(filepath=positiveSentiment, stopWords=stopWords)
     negativeData: set[str] = loadData(filepath=negativeSentiment, stopWords=stopWords)
 
     positiveTrainingData, positiveDevelopmentData, positiveTestingData = splitData(
-        data=positveData
+        data=positiveData
     )
+
     negativeTrainingData, negativeDevelopmentData, negativeTestingData = splitData(
         data=negativeData
+    )
+
+    print(
+        f"""
+    Positive Training Data Size: {len(positiveTrainingData)} ({round((len(positiveTrainingData)/ len(positiveData)) * 100, ndigits=5)}% of Positive Data)
+    Positive Development Data Size: {len(positiveDevelopmentData)} ({round((len(positiveDevelopmentData)/ len(positiveData)) * 100, ndigits=5)}% of Positive Data)
+    Positive Testing Data Size: {len(positiveTestingData)} ({round((len(positiveTestingData)/ len(positiveData)) * 100, ndigits=5)}% of Positive Data)
+
+    Negative Training Data Size: {len(negativeTrainingData)} ({round((len(negativeTrainingData)/ len(negativeData)) * 100, ndigits=5)}% of Negative Data)
+    Negative Development Data Size: {len(negativeDevelopmentData)} ({round((len(negativeDevelopmentData)/ len(negativeData)) * 100, ndigits=5)}% of Negative Data)
+    Negative Testing Data Size: {len(negativeTestingData)} ({round((len(negativeTestingData)/ len(negativeData)) * 100, ndigits=5)}% of Negative Data)
+    """
     )
 
     positiveDocumentLog, negativeDocumentLog = computeDocumentFrequency(
         positiveData=positiveTrainingData, negativeData=negativeTrainingData
     )
 
-    classLikelihoods: dict[str, List[float, float]] = trainNaiveBayes(positiveTrainingData, negativeTrainingData)
+    classLikelihoods, vocab = trainNaiveBayes(
+        positiveTrainingData, negativeTrainingData
+    )
+
+    positiveDevelopmentTest: dict = testNaiveBayes(
+        testingData=positiveDevelopmentData,
+        testingClass=1,
+        classLikelihoods=classLikelihoods,
+        positiveClassLog=positiveDocumentLog,
+        negativeClassLog=negativeDocumentLog,
+    )
+
+    negativeDevelopmentTest: dict = testNaiveBayes(
+        testingData=negativeDevelopmentData,
+        testingClass=0,
+        classLikelihoods=classLikelihoods,
+        positiveClassLog=positiveDocumentLog,
+        negativeClassLog=negativeDocumentLog,
+    )
+
+    positiveTrainingData.extend(positiveDevelopmentData)
+    negativeTrainingData.extend(negativeDevelopmentData)
+
+    positiveDocumentLog, negativeDocumentLog = computeDocumentFrequency(
+        positiveData=positiveTrainingData, negativeData=negativeTrainingData
+    )
+
+    classLikelihoods, vocab = trainNaiveBayes(
+        positiveTrainingData, negativeTrainingData
+    )
+
+    positiveTest: dict = testNaiveBayes(
+        testingData=positiveTestingData,
+        testingClass=1,
+        classLikelihoods=classLikelihoods,
+        positiveClassLog=positiveDocumentLog,
+        negativeClassLog=negativeDocumentLog,
+    )
+
+    negativeTest: dict = testNaiveBayes(
+        testingData=negativeTestingData,
+        testingClass=0,
+        classLikelihoods=classLikelihoods,
+        positiveClassLog=positiveDocumentLog,
+        negativeClassLog=negativeDocumentLog,
+    )
 
 
 if __name__ == "__main__":
