@@ -153,3 +153,11 @@ then it was reported that it was a positive class. Else, it was reported as a
 negative class.
 
 ## Results
+
+The following table includes the accuracy results from my Naive Bayes
+implementation.
+
+|                         | **True Positive** | **True Negative** | **False Positive** | **False Negative** |
+| ----------------------- | ----------------- | ----------------- | ------------------ | ------------------ |
+| **Development Dataset** | 73.0%             | 72.75%            | 27.0%              | 27.25%             |
+| **Testing Dataset**     | 72.59074%         | 77.09637%         | 27.40926%          | 22.90363%          |
