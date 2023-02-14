@@ -10,6 +10,7 @@
   - [Dependencies](#dependencies)
   - [How To Run](#how-to-run)
   - [Methodology](#methodology)
+    - [Data Preprocessing](#data-preprocessing)
     - [Data Splitting](#data-splitting)
     - [Naive Bayes Implementation](#naive-bayes-implementation)
     - [Generating Vocabularly](#generating-vocabularly)
@@ -17,6 +18,9 @@
     - [Computing Class Likelihoods per Word](#computing-class-likelihoods-per-word)
     - [Testing Naive Bayes](#testing-naive-bayes)
   - [Results](#results)
+    - [Very Confident Examples](#very-confident-examples)
+    - [Very Unconfident Examples](#very-unconfident-examples)
+    - [Most Important Features](#most-important-features)
 
 ## About
 
@@ -32,7 +36,8 @@ To run this code, you will need:
 
 - `Python 3.10`
 - `requests`
-  - This can be installed by running `pip install -r requirements.txt`
+- `pandas`
+  - These can be installed by running `pip install -r requirements.txt`
 
 ## How To Run
 
@@ -43,6 +48,12 @@ To run this code, you will need:
 My methodology follows the algorithm description from
 [Figure 4.2 of the text](https://web.stanford.edu/~jurafsky/slp3/4.pdf#figure.4.2),
 I first computed the overall document frequency for each class.
+
+### Data Preprocessing
+
+Stop words **were not removed from datasets** and all documents were made
+lowercase. Additionally, all non alphabetical charachters were removed from the
+dataset prior to usage.
 
 ### Data Splitting
 
@@ -161,3 +172,117 @@ implementation.
 | ----------------------- | ----------------- | ----------------- | ------------------ | ------------------ |
 | **Development Dataset** | 73.0%             | 72.75%            | 27.0%              | 27.25%             |
 | **Testing Dataset**     | 72.59074%         | 77.09637%         | 27.40926%          | 22.90363%          |
+
+<!-- Table generated with https://www.tablesgenerator.com/markdown_tables# -->
+
+The data generated from the development and testing datasets can be found in the
+following files:
+
+- [negativeDevelopment.json](negativeDevelopment.json)
+- [positiveDevelopment.json](positiveDevelopment.json)
+- [negativeTest.json](negativeTest.json)
+- [positiveTest.json](positiveTest.json)
+
+### Very Confident Examples
+
+> **NOTE**: Confidence scores were taken by subtracting the negative class
+> probability from the positive class probability if the document was classified
+> as positive or vice versa for documents classified as negative.
+
+The following examples were *very confident* **positive** examples:
+
+- "neither the funniest film that eddie murphy nor robert de niro has ever made
+  showtime is nevertheless efficiently amusing for a good while before it
+  collapses into exactly the kind of buddy cop comedy it set out to lampoon
+  anyway"
+  - Confidence score = `4.412481`
+- "witty dialog between realistic characters showing honest emotions touching
+  and tender and proves that even in sorrow you can find humor like blended
+  shades of lipstick these components combine into one terrific story with lots
+  of laughs"
+  - Confidence score = `5.160191`
+
+The following examples were *very confident* **negative** examples:
+
+- "in addition to sporting one of the worst titles in recent cinematic history
+  ballistic ecks vs sever also features terrible banal dialogue convenient
+  plotting superficial characters and a rather dull unimaginative car chase"
+  - Confidence score = `5.748131`
+- "the first question to ask about bad company is why anthony hopkins is in it
+  we assume he had a bad run in the market or a costly divorce because there is
+  no earthly reason other than money why this distinguished actor would stoop so
+  low"
+  - Confidence score = `7.212231`
+
+The reason why these examples scored so confidently is because:
+
+1. There were many tokens to analyze. The longer the document, the more likely
+   it is for a Naive Bayes classifer to confidently choose a class given the
+   class likelihoods of the tokens.
+1. There are many "unique" words to each class contained within the documents.
+   In other words, the words of one document show up frequently with respect to
+   its class, but not often in the other class(es).
+
+### Very Unconfident Examples
+
+> **NOTE**: Confidence scores were taken by subtracting the negative class
+> probability from the positive class probability if the document was classified
+> as positive or vice versa for documents classified as negative.
+
+The following were *very unconfident* **positive** examples:
+
+- "love is a little like a chocolate milk moustache"
+  - Confidence score = `0.000307`
+- "can i admit xxx is as deep as a petri dish and as as a telephone book but
+  still say it was a guilty pleasure"
+  - Confidence score = `0.002818`
+
+The following were *very unconfident* **negative** examples:
+
+- "insufferably naive"
+  - Confidence score = `0.0`
+- "slummer"
+- Confidence scorre = `0.0`
+
+1. There were not many tokens to analyze. The shorter the document, the less
+   likely it is for a Naive Bayes classifer to confidently choose a class given
+   the class likelihoods of the tokens.
+1. There are few "unique" words to each class contained within the documents. In
+   other words, the words of one document show up frequently within all classes.
+1. The negative examples contained words that were equally represented within
+   the training dataset for all classes, and therefore defaulted to being
+   negative by the rules of the classifier.
+
+### Most Important Features
+
+The top 10 *most important* **positive** features and their weights were:
+
+1. 'with', -2.0226690276635537
+1. 'it', -1.934427855005099
+1. 'that', -1.8767862868135838
+1. 'in', -1.8506017039117106
+1. 'is', -1.739451251789044
+1. 'to', -1.6794148625966396
+1. 'of', -1.4531239565732608
+1. 'and', -1.4240558360303712
+1. 'a', -1.3871693868896688
+1. 'the', -1.2721779107418376
+
+The top 10 *most important* **negative** features and their weights were:
+
+1. 'as', -2.0074523284003867
+1. 'it', -1.9017238503451415
+1. 'that', -1.883349577578428
+1. 'in', -1.8577596121191151
+1. 'is', -1.752489260062507
+1. 'to', -1.609512319728349
+1. 'and', -1.5502694036229117
+1. 'of', -1.5307024242650458
+1. 'a', -1.430314188584255
+1. 'the', -1.267697468931049)\]
+
+These are the most important features respectfully because their class
+likelihoods were the largest out of all the types for either class. However,
+these as these features are mainly stop words, there is a case to be made that
+these specifc fetures are not that important as they don't capture the sentiment
+of a class.

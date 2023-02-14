@@ -2,8 +2,10 @@ from collections import defaultdict
 from json import dumps
 from math import floor, log10
 from pathlib import PurePath
+from pprint import pprint
 from typing import List, Tuple
 
+from pandas import DataFrame
 from requests import Response, get
 
 
@@ -187,16 +189,23 @@ def testNaiveBayes(
                 pass
 
         documentClass: int
+        diff: float
         if positiveDocumentProbability > negativeDocumentProbability:
             documentClass = 1
+            diff = positiveDocumentProbability - negativeDocumentProbability
+        elif positiveDocumentProbability < negativeDocumentProbability:
+            documentClass = 0
+            diff = negativeDocumentProbability - positiveDocumentProbability
         else:
             documentClass = 0
+            diff = 0
 
         data[document] = [
             documentClass,
             testingClass,
             positiveDocumentProbability,
             negativeDocumentProbability,
+            diff,
         ]
 
     return data
@@ -371,6 +380,29 @@ def main() -> None:
     False Negative  : {negativeAccuracy[1]}%
     """
     )
+
+    # dfPositive: DataFrame = DataFrame(data=positiveTest).T.sort_values(by=4)
+    # dfNegative: DataFrame = DataFrame(data=negativeTest).T.sort_values(by=4)
+
+    # # Smallest difference
+    # print("negative")
+    # print(dfNegative.head(n=2)[4], "\n\n")
+    # print("positive")
+    # print(dfPositive.head(n=2)[4], "\n\n")
+
+    # # Biggest difference
+    # print("negative")
+    # print(dfNegative.tail(n=2)[4], "\n\n")
+    # print("positive")
+    # print(dfPositive.tail(n=2)[4], "\n\n")
+
+    # top10Postive: dict = {k : classLikelihoods[k][0] for k in classLikelihoods.keys()}
+    # top10Postive = sorted(top10Postive.items(), key=lambda x: x[1])
+
+    # top10Negative: dict = {k : classLikelihoods[k][1] for k in classLikelihoods.keys()}
+    # top10Negative = sorted(top10Negative.items(), key=lambda x: x[1])
+
+    # pprint(top10Negative[0:10])
 
 
 if __name__ == "__main__":
