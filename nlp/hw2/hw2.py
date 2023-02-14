@@ -107,8 +107,6 @@ def computeClassLikelihoods(
     positiveLikelihood: dict[str, float] = {}
     negativeLikelihood: dict[str, float] = {}
 
-    # d in set(vocab)}
-
     word: str
     for word in positiveData:
         count: int = positiveData[word] + 1

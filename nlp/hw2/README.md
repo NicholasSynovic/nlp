@@ -14,6 +14,8 @@
     - [Naive Bayes Implementation](#naive-bayes-implementation)
     - [Generating Vocabularly](#generating-vocabularly)
     - [Computing Word Frequency](#computing-word-frequency)
+    - [Computing Class Likelihoods per Word](#computing-class-likelihoods-per-word)
+    - [Testing Naive Bayes](#testing-naive-bayes)
   - [Results](#results)
 
 ## About
@@ -57,13 +59,13 @@ The dataset was split with the following method:
 The results of the splitting are the following:
 
 ```text
-Positive Training Data Size     : 3731 (69.98687% of Positive Data)
-Positive Development Data Size  : 800 (15.00657% of Positive Data)
-Positive Testing Data Size      : 799 (14.98781% of Positive Data)
+Positive Training Doc. Size     : 3732   (69.9925% of Positive Docs)
+Positive Development Doc. Size  : 800    (15.00375% of Positive Docs)
+Positive Testing Doc. Size      : 799    (14.985% of Positive Docs)
 
-Negative Training Data Size     : 3730 (69.99437% of Negative Data)
-Negative Development Data Size  : 799 (14.99343% of Negative Data)
-Negative Testing Data Size      : 799 (14.99343% of Negative Data)
+Negative Training Doc. Size     : 3732   (69.9925% of Negative Docs)
+Negative Development Doc. Size  : 800    (15.00375% of Negative Docs)
+Negative Testing Doc. Size      : 799    (14.985% of Negative Docs)
 ```
 
 ### Naive Bayes Implementation
@@ -97,5 +99,57 @@ documents from the training datasets. And then splitting the documents into
 words by splitting on the spaces in between each word.
 
 ### Computing Word Frequency
+
+Word frequency is the count of a word within a set of documents in a class. To
+compute this, I used a `defaultdict(int)` to store the mapping of
+`{word : count}`.
+
+I first split each document in a class by spaces and joined all the resulting
+lists of words. I then iterated over each word, appended it to the the list, and
+set the value for each word to be `1+` the previous value.
+
+### Computing Class Likelihoods per Word
+
+The class likelihood per word is the measurement of how likely a word is to
+appear within a set of documents given a class. It is measured as a percentage.
+
+To compute this, I took the word counts for a given class from
+[Computing Word Frequency](#computing-word-frequency) and divded is by total
+number of words within said class. Laplace smoothing of 1 was applied to both
+the total number of words as well as the word count. The `log10()` was taken of
+the quotient.
+
+This operation was done twice; once for the positive class and once for the
+negative class.
+
+The two quotients were then appended to a list and stored in a dictionary. An
+example dictionary is described below:
+
+```python
+classLikelihood: dict[str, List[float, float]] = {"word": [0.1, 0.2]}
+```
+
+### Testing Naive Bayes
+
+Combining the above functions together results in a functional Naive Bayes
+algorithm.
+
+Tests were done using the development dataset while creating this algorithm. The
+training and development dataset were concatinated together prior to evaluating
+the testing dataset.
+
+To determine the class probability of a document, each token of the document was
+looked up in the
+[class likelihood mapping](#computing-class-likelihoods-per-word) and summed
+together. Both the positive and negative class likelihoods were consoluted to
+determine the positive and negative classes respectfully.
+
+If a word in the testing dataset did not exist within the class likelihood
+mapping, then no value for that word was added (equivalent to a `+ 0`
+operation).
+
+If the positive class likelihood was greater than the negative class likelihood,
+then it was reported that it was a positive class. Else, it was reported as a
+negative class.
 
 ## Results
