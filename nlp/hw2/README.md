@@ -40,13 +40,23 @@ To run this code, you will need:
 The dataset was split with the following method:
 
 1. Load in the positive dataset
-1. Use the first 70% of indexes to create the positive training dataset
-1. Use the next 15% of indexes to create the positive development dataset
-1. Use the remaining 15% of index to create the positive testing dataset
-1. Repeat steps 1 - 4 and substitute the positive dataset for the negative
-   dataset (thus resulting in the same splits percentages for the negative
-   training, development, and testing datasets)
+1. Use *the first 70%* of indexes to create **the positive training dataset**
+1. Use *the next 15%* of indexes to create **the positive development dataset**
+1. Use *the remaining 15%* of index to create **the positive testing dataset**
+1. Repeat steps 1 - 4 and substitute *the positive dataset* for *the negative
+   dataset* (thus resulting *in the same splits percentages* for **the negative
+   training, development, and testing datasets**)
 
-The
+The results of the splitting are the following:
+
+```text
+Positive Training Data Size     : 3731 (69.98687% of Positive Data)
+Positive Development Data Size  : 800 (15.00657% of Positive Data)
+Positive Testing Data Size      : 799 (14.98781% of Positive Data)
+
+Negative Training Data Size     : 3730 (69.99437% of Negative Data)
+Negative Development Data Size  : 799 (14.99343% of Negative Data)
+Negative Testing Data Size      : 799 (14.99343% of Negative Data)
+```
 
 ## Results
