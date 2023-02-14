@@ -1,4 +1,5 @@
 from collections import defaultdict
+from json import dumps
 from math import floor, log10
 from pathlib import PurePath
 from typing import List, Tuple
@@ -266,6 +267,11 @@ def main() -> None:
         negativeClassLog=negativeDocumentLog,
     )
 
+    with open("positiveDevelopment.json", "w") as jsonFile:
+        jsonData: str = dumps(obj=positiveDevelopmentTest, indent=4)
+        jsonFile.write(jsonData)
+        jsonFile.close()
+
     negativeDevelopmentTest: dict = testNaiveBayes(
         testingData=negativeDevelopmentData,
         testingClass=0,
@@ -273,6 +279,11 @@ def main() -> None:
         positiveClassLog=positiveDocumentLog,
         negativeClassLog=negativeDocumentLog,
     )
+
+    with open("negativeDevelopment.json", "w") as jsonFile:
+        jsonData: str = dumps(obj=negativeDevelopmentTest, indent=4)
+        jsonFile.write(jsonData)
+        jsonFile.close()
 
     positiveTrainingData.extend(positiveDevelopmentData)
     negativeTrainingData.extend(negativeDevelopmentData)
@@ -293,6 +304,11 @@ def main() -> None:
         negativeClassLog=negativeDocumentLog,
     )
 
+    with open("positiveTest.json", "w") as jsonFile:
+        jsonData: str = dumps(obj=positiveTest, indent=4)
+        jsonFile.write(jsonData)
+        jsonFile.close()
+
     negativeTest: dict = testNaiveBayes(
         testingData=negativeTestingData,
         testingClass=0,
@@ -300,6 +316,11 @@ def main() -> None:
         positiveClassLog=positiveDocumentLog,
         negativeClassLog=negativeDocumentLog,
     )
+
+    with open("negativeTest.json", "w") as jsonFile:
+        jsonData: str = dumps(obj=negativeTest, indent=4)
+        jsonFile.write(jsonData)
+        jsonFile.close()
 
 
 if __name__ == "__main__":
