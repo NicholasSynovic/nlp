@@ -1,6 +1,6 @@
 from collections import defaultdict
 from json import dumps
-from math import floor, log10
+from math import floor, log
 from pathlib import PurePath
 from typing import List, Tuple
 
@@ -19,7 +19,7 @@ def downloadData(url: str, filepath: PurePath) -> None:
         sentiment.close()
 
 
-def loadData(filepath: PurePath) -> set[str]:
+def loadData(filepath: PurePath) -> List[str]:
     """Loads data and removes punctuation"""
     data: List[str]
 
@@ -31,16 +31,16 @@ def loadData(filepath: PurePath) -> set[str]:
 
     idx: int
     for idx in range(len(data)):
-        tokens: List[str] = set(
-            [token for token in data[idx].split(" ") if token.isalpha()]
-        )
+        tokens: List[str] = [
+            token.lower() for token in data[idx].split(" ") if token.isalpha()
+        ]
 
         data[idx] = " ".join(tokens)
 
-    return set(data)
+    return data
 
 
-def splitData(data: set[str]) -> Tuple[List[str], List[str], List[str]]:
+def splitData(data: List[str]) -> Tuple[List[str], List[str], List[str]]:
     data: List[str] = list(data)
     dataLength: int = len(data)
 
@@ -59,8 +59,8 @@ def computeDocumentFrequency(
 ) -> Tuple[float, float]:
     data: List[str] = positiveData + negativeData
 
-    positiveClassLog = abs(log10(len(positiveData) / len(data)))
-    negativeClassLog = abs(log10(len(negativeData) / len(data)))
+    positiveClassLog = log(len(positiveData) / len(data))
+    negativeClassLog = log(len(negativeData) / len(data))
 
     return (positiveClassLog, negativeClassLog)
 
@@ -111,18 +111,18 @@ def computeClassLikelihoods(
     negativeWordFrequency: int,
     vocab: List[str],
 ) -> dict:
-    data: dict[str, List[float, float]] = {word: [1, 1] for word in vocab}
+    data: dict[str, List[float, float]] = {word: [0, 0] for word in vocab}
 
     word: str
     for word in positiveData:
         count: int = positiveData[word] + 1
         positiveWordCount: int = positiveWordFrequency + 1
-        data[word][0] = abs(log10(count / positiveWordCount))
+        data[word][0] = log(count / positiveWordCount)
 
     for word in negativeData:
         count: int = negativeData[word] + 1
         negativeWordCount: int = negativeWordFrequency + 1
-        data[word][1] = abs(log10(count / negativeWordCount))
+        data[word][1] = log(count / negativeWordCount)
 
     return data
 
@@ -242,8 +242,8 @@ def main() -> None:
         filepath=negativeSentiment,
     )
 
-    positiveData: set[str] = loadData(filepath=positiveSentiment)
-    negativeData: set[str] = loadData(filepath=negativeSentiment)
+    positiveData: List[str] = loadData(filepath=positiveSentiment)
+    negativeData: List[str] = loadData(filepath=negativeSentiment)
 
     positiveTrainingData, positiveDevelopmentData, positiveTestingData = splitData(
         data=positiveData
