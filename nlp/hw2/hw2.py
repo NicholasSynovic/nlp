@@ -1,7 +1,7 @@
+from collections import defaultdict
 from math import floor
 from pathlib import PurePath
 from typing import List, Tuple
-from collections import defaultdict
 
 from requests import Response, get
 
@@ -63,7 +63,7 @@ def splitData(data: set[str]) -> Tuple[List[str], List[str], List[str]]:
     return (training, validation, testing)
 
 
-def computeWordFrequency(data: List[str])   -> Tuple[dict[str, int], int]:
+def computeWordFrequency(data: List[str]) -> Tuple[dict[str, int], int]:
     words: List[str] = []
     dataDict: defaultdict[str, int] = defaultdict(int)
 
@@ -82,7 +82,6 @@ def computeWordFrequency(data: List[str])   -> Tuple[dict[str, int], int]:
         wordCount += dataDict[word]
 
     return (dataDict, wordCount)
-
 
 
 def main() -> None:
@@ -110,9 +109,13 @@ def main() -> None:
     positiveSplits: Tuple[set[str], set[str], set[str]] = splitData(data=positveData)
     negativeSplits: Tuple[set[str], set[str], set[str]] = splitData(data=negativeData)
 
-    positiveTrainingFrequency, positiveTrainingWordCount = computeWordFrequency(data=positiveSplits[0])
+    positiveTrainingFrequency, positiveTrainingWordCount = computeWordFrequency(
+        data=positiveSplits[0]
+    )
 
-    negativeTrainingFrequency, negativeTrainingWordCount = computeWordFrequency(data=negativeSplits[0])
+    negativeTrainingFrequency, negativeTrainingWordCount = computeWordFrequency(
+        data=negativeSplits[0]
+    )
 
 
 if __name__ == "__main__":
