@@ -85,6 +85,14 @@ def computeWordFrequency(data: List[str]) -> Tuple[dict[str, int], int]:
 
 
 def main() -> None:
+    positiveTrainingData: List[str]
+    positiveDevelopmentData: List[str]
+    positiveTestingData: List[str]
+
+    negativeTrainingData: List[str]
+    negativeDevelopmentData: List[str]
+    negativeTestingData: List[str]
+
     positiveTrainingFrequency: dict[str, int]
     negativeTrainingFrequency: dict[str, int]
     positiveTrainingWordCount: int
@@ -106,8 +114,8 @@ def main() -> None:
     positveData: set[str] = loadData(filepath=positiveSentiment, stopWords=stopWords)
     negativeData: set[str] = loadData(filepath=negativeSentiment, stopWords=stopWords)
 
-    positiveSplits: Tuple[set[str], set[str], set[str]] = splitData(data=positveData)
-    negativeSplits: Tuple[set[str], set[str], set[str]] = splitData(data=negativeData)
+    positiveTrainingData, positiveDevelopmentData, positiveTestingData = splitData(data=positveData)
+    negativeTrainingData, negativeDevelopmentData, negativeTestingData = splitData(data=negativeData)
 
     positiveTrainingFrequency, positiveTrainingWordCount = computeWordFrequency(
         data=positiveSplits[0]
