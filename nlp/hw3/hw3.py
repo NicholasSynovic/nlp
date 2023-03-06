@@ -2,6 +2,9 @@ from collections import Counter
 from pathlib import PurePath
 from typing import List, Tuple
 
+import numpy
+from numpy import ndarray
+from numpy.random import MT19937, RandomState
 from sklearn.model_selection import train_test_split
 
 
@@ -51,26 +54,35 @@ def splitData(
     ]
 
 
-def termDocumentFrequency(data: List[str]) -> None:
+def createWordList(data: List[str]) -> List[str]:
     wordList: List[str] = []
 
     document: str
     for document in data:
         wordList += document.split(" ")
 
-    td: dict[str, List] = {document: [] for document in data}
+    return wordList
 
-    wordSet: set[str] = set(wordList)
 
-    for document in td:
+def termDocumentFrequency(
+    data: List[str], wordSet: set[str], label: int
+) -> List[List[int]]:
+    tdfDict: dict[str, List[int]] = {document: [label] for document in data}
+    tdfList: List[List[str]] = []
+
+    for document in tdfDict:
         c: Counter = Counter(document.split(" "))
         for word in wordSet:
-            td[document].append(c[word])
+            tdfDict[document].append(c[word])
+        tdfList.append(tdfDict[document])
 
-        print(td[document])
+    return tdfList
 
 
 def main() -> None:
+    mt19937: MT19937 = MT19937(42)
+    rs: RandomState = RandomState(mt19937)
+
     positivePath: PurePath = PurePath("positive")
     negativePath: PurePath = PurePath("negative")
 
@@ -80,6 +92,21 @@ def main() -> None:
     data: List[Tuple[List[str], List[str], List[str]]] = splitData(
         positiveData, negativeData
     )
+
+    positiveWordList: List[str] = createWordList(data[0][0])
+    negativeWordList: List[str] = createWordList(data[1][0])
+    wordList: List[str] = positiveWordList + negativeWordList
+    wordSet: set[str] = set(wordList)
+
+    positiveTDF: List[List[int]] = termDocumentFrequency(data[0][0], wordSet, label=1)
+    negativeTDF: List[List[int]] = termDocumentFrequency(data[1][0], wordSet, label=0)
+
+    tdf: List[List[int]] = positiveTDF + negativeTDF
+    tdfNumpy: ndarray = numpy.array(tdf)
+    rs.shuffle(tdfNumpy)
+
+    labels: ndarray = tdfNumpy[:, 0]
+    tdfNumpy = tdfNumpy[:, 1:]
 
 
 if __name__ == "__main__":
