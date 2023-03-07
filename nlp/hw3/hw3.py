@@ -161,36 +161,36 @@ def main() -> None:
     ################################################################################
     # Uncomment the following to initiate grid search
 
-    # trainingData, trainingLabels = createDataset(
-    #     positiveData=data[0][0], negativeData=data[1][0], wordSet=wordSet
-    # )
-    # developmentData, developmentLabels = createDataset(
-    #     positiveData=data[0][1], negativeData=data[1][1], wordSet=wordSet
-    # )
-    # testData, testLabels = createDataset(
-    #     positiveData=data[0][2], negativeData=data[1][2], wordSet=wordSet
-    # )
-    # pipeline: Pipeline = make_pipeline(SVC(random_state=42))
+    trainingData, trainingLabels = createDataset(
+        positiveData=data[0][0], negativeData=data[1][0], wordSet=wordSet
+    )
+    developmentData, developmentLabels = createDataset(
+        positiveData=data[0][1], negativeData=data[1][1], wordSet=wordSet
+    )
+    testData, testLabels = createDataset(
+        positiveData=data[0][2], negativeData=data[1][2], wordSet=wordSet
+    )
+    pipeline: Pipeline = make_pipeline(SVC(random_state=42))
 
-    # parameterRange: List[float] = [0.0001, 0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0]
-    # parameterGrid: List[dict] = [
-    #     {"svc__C": parameterRange, "svc__kernel": ["linear"]},
-    #     {
-    #         "svc__C": parameterRange,
-    #         "svc__gamma": parameterRange,
-    #         "svc__kernel": ["rbf"],
-    #     },
-    # ]
-    # gridSearch: GridSearchCV = GridSearchCV(
-    #     estimator=pipeline,
-    #     param_grid=parameterGrid,
-    #     scoring="accuracy",
-    #     cv=10,
-    #     refit=True,
-    #     n_jobs=-1,
-    # )
-    # gridSearch.fit(X=trainingData, y=trainingLabels)
-    # bestModel = gridSearch.best_estimator_
+    parameterRange: List[float] = [0.0001, 0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0]
+    parameterGrid: List[dict] = [
+        {"svc__C": parameterRange, "svc__kernel": ["linear"]},
+        {
+            "svc__C": parameterRange,
+            "svc__gamma": parameterRange,
+            "svc__kernel": ["rbf"],
+        },
+    ]
+    gridSearch: GridSearchCV = GridSearchCV(
+        estimator=pipeline,
+        param_grid=parameterGrid,
+        scoring="accuracy",
+        cv=10,
+        refit=True,
+        n_jobs=-1,
+    )
+    gridSearch.fit(X=trainingData, y=trainingLabels)
+    bestModel = gridSearch.best_estimator_
     # print(gridSearch.best_score_)
     # print(gridSearch.best_params_)
     ################################################################################
@@ -198,11 +198,11 @@ def main() -> None:
     ################################################################################
     # Uncomment the following to use the best model from grid search
     # bestModel: SVC = SVC(C=100, gamma=0.1, random_state=42)
-    # bestModel = gridSearch.best_estimator_
+    bestModel = gridSearch.best_estimator_
     # print(gridSearch.best_score_)
     # print(gridSearch.best_params_)
 
-    # bestModel.fit(X=trainingData, y=trainingLabels)
+    bestModel.fit(X=trainingData, y=trainingLabels)
     # print(bestModel.score(developmentData, developmentLabels))
     # print(bestModel.score(testData, testLabels))
     ################################################################################
@@ -219,11 +219,12 @@ def main() -> None:
         positiveData=data[0][2], negativeData=data[1][2], wordSet=wordSet
     )
 
-    bestModel: SVC = SVC(C=100, gamma=0.1, random_state=42)
-    # bestModel = gridSearch.best_estimator_
+    # bestModel: SVC = SVC(C=100, gamma=0.1, random_state=42)
+    bestModel = gridSearch.best_estimator_
     bestModel.fit(trainingData, trainingLabels)
-    print(bestModel.score(developmentData, developmentLabels))
-    print(bestModel.score(testData, testLabels))
+    # print(bestModel.score(trainingData, trainingLabels))
+    # print(bestModel.score(developmentData, developmentLabels))
+    # print(bestModel.score(testData, testLabels))
 
 
 ################################################################################
