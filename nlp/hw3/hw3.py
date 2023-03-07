@@ -5,7 +5,11 @@ from typing import List, Tuple
 import numpy
 from numpy import ndarray
 from numpy.random import MT19937, RandomState
-from sklearn.model_selection import train_test_split
+from sklearn.decomposition import PCA
+from sklearn.model_selection import GridSearchCV, train_test_split
+from sklearn.pipeline import Pipeline, make_pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
 
 
 def loadData(filepath: PurePath) -> List[str]:
@@ -79,10 +83,42 @@ def termDocumentFrequency(
     return tdfList
 
 
-def main() -> None:
+def scaleData(
+    fitData: ndarray, transformData: ndarray, numberOfComponents: int = 10
+) -> ndarray:
+    scaler: StandardScaler = StandardScaler()
+    scaler.fit(fitData)
+    scaledData: ndarray = scaler.transform(transformData)
+    pca: PCA = PCA(n_components=numberOfComponents)
+    pca.fit(X=scaledData)
+
+    return pca.transform(X=transformData)
+
+
+def createDataset(
+    positiveData: ndarray, negativeData: ndarray, wordSet: set[str]
+) -> Tuple[ndarray, ndarray]:
     mt19937: MT19937 = MT19937(42)
     rs: RandomState = RandomState(mt19937)
 
+    positiveTDF: List[List[int]] = termDocumentFrequency(positiveData, wordSet, label=1)
+    negativeTDF: List[List[int]] = termDocumentFrequency(negativeData, wordSet, label=0)
+
+    tdf: List[List[int]] = positiveTDF + negativeTDF
+    tdfNumpy: ndarray = numpy.array(tdf)
+    rs.shuffle(tdfNumpy)
+
+    labels: ndarray = tdfNumpy[:, 0]
+    tdfNumpy = tdfNumpy[:, 1:]
+
+    scaledData: ndarray = scaleData(
+        fitData=tdfNumpy, transformData=tdfNumpy, numberOfComponents=100
+    )
+
+    return (scaledData, labels)
+
+
+def main() -> None:
     positivePath: PurePath = PurePath("positive")
     negativePath: PurePath = PurePath("negative")
 
@@ -98,15 +134,41 @@ def main() -> None:
     wordList: List[str] = positiveWordList + negativeWordList
     wordSet: set[str] = set(wordList)
 
-    positiveTDF: List[List[int]] = termDocumentFrequency(data[0][0], wordSet, label=1)
-    negativeTDF: List[List[int]] = termDocumentFrequency(data[1][0], wordSet, label=0)
+    trainingData, trainingLabels = createDataset(
+        positiveData=data[0][0], negativeData=data[1][0], wordSet=wordSet
+    )
+    developmentData, developmentLabels = createDataset(
+        positiveData=data[0][1], negativeData=data[1][1], wordSet=wordSet
+    )
+    testData, testLabels = createDataset(
+        positiveData=data[0][2], negativeData=data[1][2], wordSet=wordSet
+    )
 
-    tdf: List[List[int]] = positiveTDF + negativeTDF
-    tdfNumpy: ndarray = numpy.array(tdf)
-    rs.shuffle(tdfNumpy)
+    pipeline: Pipeline = make_pipeline(SVC(random_state=42))
 
-    labels: ndarray = tdfNumpy[:, 0]
-    tdfNumpy = tdfNumpy[:, 1:]
+    parameterRange: List[float] = [0.0001, 0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0]
+    parameterGrid: List[dict] = [
+        {"svc__C": parameterRange, "svc__kernel": ["linear"]},
+        {
+            "svc__C": parameterRange,
+            "svc__gamma": parameterRange,
+            "svc__kernel": ["rbf"],
+        },
+    ]
+
+    gridSearch: GridSearchCV = GridSearchCV(
+        estimator=pipeline,
+        param_grid=parameterGrid,
+        scoring="accuracy",
+        cv=10,
+        refit=True,
+        n_jobs=-1,
+    )
+
+    gridSearch.fit(X=trainingData, y=trainingLabels)
+
+    print(gridSearch.best_score_)
+    print(gridSearch.best_params_)
 
 
 if __name__ == "__main__":
