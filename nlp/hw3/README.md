@@ -172,8 +172,7 @@ The best model had the following hyper-parameters:
 - `kernel`: rbf (this was the only kernel tested)
 - `random_state`: 42
 
-The best model achieved an accuracy of *65.11%* on the training dataset and
-*49.41%* on the development dataset.
+The best model achieved an accuracy of *49.41%* on the development dataset.
 
 ### Best Model Test Dataset Results
 
