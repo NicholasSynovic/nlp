@@ -5,11 +5,17 @@ from typing import List, Tuple
 import numpy
 from numpy import ndarray
 from numpy.random import MT19937, RandomState
+from scipy.sparse import vstack
+from scipy.sparse._csr import csr_matrix
 from sklearn.decomposition import PCA
+from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.pipeline import Pipeline, make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
+
+mt19937: MT19937 = MT19937(42)
+rs: RandomState = RandomState(mt19937)
 
 
 def loadData(filepath: PurePath) -> List[str]:
@@ -98,9 +104,6 @@ def scaleData(
 def createDataset(
     positiveData: ndarray, negativeData: ndarray, wordSet: set[str]
 ) -> Tuple[ndarray, ndarray]:
-    mt19937: MT19937 = MT19937(42)
-    rs: RandomState = RandomState(mt19937)
-
     positiveTDF: List[List[int]] = termDocumentFrequency(positiveData, wordSet, label=1)
     negativeTDF: List[List[int]] = termDocumentFrequency(negativeData, wordSet, label=0)
 
@@ -116,6 +119,27 @@ def createDataset(
     )
 
     return (scaledData, labels)
+
+
+def createVectorizedDataset(
+    positiveData: ndarray, negativeData: ndarray, wordSet: set[str]
+) -> Tuple[ndarray, ndarray]:
+    vectorizer: CountVectorizer = CountVectorizer(
+        strip_accents="ascii", lowercase=True, analyzer="word", vocabulary=wordSet
+    )
+
+    vectorizedPositiveData: csr_matrix = vectorizer.fit_transform(positiveData)
+    vectorizedNegativeData: csr_matrix = vectorizer.fit_transform(negativeData)
+
+    positiveLabels: List[int] = [1 for _ in range(vectorizedPositiveData.shape[0])]
+    negativeLabels: List[int] = [0 for _ in range(vectorizedNegativeData.shape[0])]
+
+    vectorizedData: csr_matrix = vstack(
+        (vectorizedPositiveData, vectorizedNegativeData)
+    )
+    labels: List[int] = positiveLabels + negativeLabels
+
+    return (vectorizedData, labels)
 
 
 def main() -> None:
@@ -134,55 +158,74 @@ def main() -> None:
     wordList: List[str] = positiveWordList + negativeWordList
     wordSet: set[str] = set(wordList)
 
-    trainingData, trainingLabels = createDataset(
+    ################################################################################
+    # Uncomment the following to initiate grid search
+
+    # trainingData, trainingLabels = createDataset(
+    #     positiveData=data[0][0], negativeData=data[1][0], wordSet=wordSet
+    # )
+    # developmentData, developmentLabels = createDataset(
+    #     positiveData=data[0][1], negativeData=data[1][1], wordSet=wordSet
+    # )
+    # testData, testLabels = createDataset(
+    #     positiveData=data[0][2], negativeData=data[1][2], wordSet=wordSet
+    # )
+    # pipeline: Pipeline = make_pipeline(SVC(random_state=42))
+
+    # parameterRange: List[float] = [0.0001, 0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0]
+    # parameterGrid: List[dict] = [
+    #     {"svc__C": parameterRange, "svc__kernel": ["linear"]},
+    #     {
+    #         "svc__C": parameterRange,
+    #         "svc__gamma": parameterRange,
+    #         "svc__kernel": ["rbf"],
+    #     },
+    # ]
+    # gridSearch: GridSearchCV = GridSearchCV(
+    #     estimator=pipeline,
+    #     param_grid=parameterGrid,
+    #     scoring="accuracy",
+    #     cv=10,
+    #     refit=True,
+    #     n_jobs=-1,
+    # )
+    # gridSearch.fit(X=trainingData, y=trainingLabels)
+    # bestModel = gridSearch.best_estimator_
+    # print(gridSearch.best_score_)
+    # print(gridSearch.best_params_)
+    ################################################################################
+
+    ################################################################################
+    # Uncomment the following to use the best model from grid search
+    # bestModel: SVC = SVC(C=100, gamma=0.1, random_state=42)
+    # bestModel = gridSearch.best_estimator_
+    # print(gridSearch.best_score_)
+    # print(gridSearch.best_params_)
+
+    # bestModel.fit(X=trainingData, y=trainingLabels)
+    # print(bestModel.score(developmentData, developmentLabels))
+    # print(bestModel.score(testData, testLabels))
+    ################################################################################
+
+    ################################################################################
+    # Uncomment for vectorization with CountVectorizer()
+    trainingData, trainingLabels = createVectorizedDataset(
         positiveData=data[0][0], negativeData=data[1][0], wordSet=wordSet
     )
-    developmentData, developmentLabels = createDataset(
+    developmentData, developmentLabels = createVectorizedDataset(
         positiveData=data[0][1], negativeData=data[1][1], wordSet=wordSet
     )
-    testData, testLabels = createDataset(
+    testData, testLabels = createVectorizedDataset(
         positiveData=data[0][2], negativeData=data[1][2], wordSet=wordSet
     )
 
-    pipeline: Pipeline = make_pipeline(SVC(random_state=42))
-
-    parameterRange: List[float] = [0.0001, 0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0]
-    parameterGrid: List[dict] = [
-        {"svc__C": parameterRange, "svc__kernel": ["linear"]},
-        {
-            "svc__C": parameterRange,
-            "svc__gamma": parameterRange,
-            "svc__kernel": ["rbf"],
-        },
-    ]
+    bestModel: SVC = SVC(C=100, gamma=0.1, random_state=42)
+    # bestModel = gridSearch.best_estimator_
+    bestModel.fit(trainingData, trainingLabels)
+    print(bestModel.score(developmentData, developmentLabels))
+    print(bestModel.score(testData, testLabels))
 
 
-################################################################################
-# Uncomment the following to initiate grid search
-# gridSearch: GridSearchCV = GridSearchCV(
-#     estimator=pipeline,
-#     param_grid=parameterGrid,
-#     scoring="accuracy",
-#     cv=10,
-#     refit=True,
-#     n_jobs=-1,
-# )
-# gridSearch.fit(X=trainingData, y=trainingLabels)
-# bestModel = gridSearch.best_estimator_
-# print(gridSearch.best_score_)
-# print(gridSearch.best_params_)
-################################################################################
-
-################################################################################
-# Uncomment the following to use the best model from grid search
-# bestModel: SVC = SVC(C=100, gamma=0.1, random_state=42)
-# bestModel = gridSearch.best_estimator_
-# print(gridSearch.best_score_)
-# print(gridSearch.best_params_)
-
-# bestModel.fit(X=trainingData, y=trainingLabels)
-# print(bestModel.score(developmentData, developmentLabels))
-# print(bestModel.score(testData, testLabels))
 ################################################################################
 
 if __name__ == "__main__":
