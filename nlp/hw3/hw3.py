@@ -156,20 +156,34 @@ def main() -> None:
         },
     ]
 
-    gridSearch: GridSearchCV = GridSearchCV(
-        estimator=pipeline,
-        param_grid=parameterGrid,
-        scoring="accuracy",
-        cv=10,
-        refit=True,
-        n_jobs=-1,
-    )
 
-    gridSearch.fit(X=trainingData, y=trainingLabels)
+################################################################################
+# Uncomment the following to initiate grid search
+# gridSearch: GridSearchCV = GridSearchCV(
+#     estimator=pipeline,
+#     param_grid=parameterGrid,
+#     scoring="accuracy",
+#     cv=10,
+#     refit=True,
+#     n_jobs=-1,
+# )
+# gridSearch.fit(X=trainingData, y=trainingLabels)
+# bestModel = gridSearch.best_estimator_
+# print(gridSearch.best_score_)
+# print(gridSearch.best_params_)
+################################################################################
 
-    print(gridSearch.best_score_)
-    print(gridSearch.best_params_)
+################################################################################
+# Uncomment the following to use the best model from grid search
+# bestModel: SVC = SVC(C=100, gamma=0.1, random_state=42)
+# bestModel = gridSearch.best_estimator_
+# print(gridSearch.best_score_)
+# print(gridSearch.best_params_)
 
+# bestModel.fit(X=trainingData, y=trainingLabels)
+# print(bestModel.score(developmentData, developmentLabels))
+# print(bestModel.score(testData, testLabels))
+################################################################################
 
 if __name__ == "__main__":
     main()
