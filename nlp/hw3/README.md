@@ -199,3 +199,5 @@ The table below compares the results between my custom vectorizer and
 | --------------------- | ----------------------- | ------------------- |
 | **Custom Vectorizer** | 49.41%                  | 50.13%              |
 | **CountVectorizer**   | 73.24%                  | 70.88%              |
+
+<!-- Table generated with https://www.tablesgenerator.com/markdown_tables-->

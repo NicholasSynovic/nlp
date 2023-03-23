@@ -219,9 +219,9 @@ def main() -> None:
     customModel: KeyedVectors = Word2Vec.load(customModelFilePath).wv
     googleNewsModel: KeyedVectors = KeyedVectors.load(googleNewsModelFilePath)
 
-    # part1(model=customModel)
-    # part2(model=googleNewsModel)
-    # print(f"Spearman Score: {part3(model=googleNewsModel)}")
+    part1(model=customModel)
+    part2(model=googleNewsModel)
+    print(f"Spearman Score: {part3(model=googleNewsModel)}")
     part4(model=googleNewsModel)
 
 
