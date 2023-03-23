@@ -1,3 +1,5 @@
+from argparse import ArgumentParser, BooleanOptionalAction, Namespace
+
 from gensim import utils
 from gensim.models import Word2Vec
 from progress.bar import Bar
@@ -27,6 +29,16 @@ class MyCorpus:
         self.epochCount += 1
 
 
+def getArgs() -> Namespace:
+    parser: ArgumentParser = ArgumentParser(
+        prog="COMP 429 NLP HW4",
+        usage="Homework 4 solution for COMP 429",
+        epilog="Written by Nicholas M. Synovic",
+    )
+    parser.add_argument("--train", action=BooleanOptionalAction)
+    return parser.parse_args()
+
+
 def train(modelFilePath: str = "model/w2v.gensim") -> None:
     sentences: MyCorpus = MyCorpus()
 
@@ -38,7 +50,11 @@ def train(modelFilePath: str = "model/w2v.gensim") -> None:
 
 
 def main() -> None:
-    pass
+    args: Namespace = getArgs()
+
+    if args.train:
+        train()
+        quit(1)
 
 
 if __name__ == "__main__":
