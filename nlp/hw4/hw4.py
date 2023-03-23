@@ -1,5 +1,5 @@
+import gensim.models
 from gensim import utils
-from gensim.test.utils import datapath
 
 
 class MyCorpus:
@@ -16,8 +16,6 @@ class MyCorpus:
             line: str = line.strip()
             yield utils.simple_preprocess(line)
 
-
-import gensim.models
 
 sentences = MyCorpus()
 model = gensim.models.Word2Vec(sentences=sentences)
