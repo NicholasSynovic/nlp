@@ -80,7 +80,7 @@ def downloadGoogleNews(
     model.save(modelFilePath)
 
 
-def part1(modelFilePath: str) -> None:
+def part1(model: KeyedVectors) -> None:
     outputFilePath: str = "similarityQueryResults.txt"
 
     testSimilarity: List[str] = [
@@ -96,16 +96,13 @@ def part1(modelFilePath: str) -> None:
         "the",
     ]
 
-    w2v: Word2Vec = Word2Vec.load(modelFilePath)
-    wordVectors: KeyedVectors = w2v.wv
-
     print(f"Writing similarity test results to {outputFilePath}...")
 
     testWord: str
     with open(file=outputFilePath, mode="w") as sqr:
         for testWord in testSimilarity:
             similarWords: List[Tuple[str, float]] = similarityQuery(
-                word=testWord, wv=wordVectors
+                word=testWord, wv=model
             )
 
             similarWords: List[str] = [
@@ -119,7 +116,7 @@ def part1(modelFilePath: str) -> None:
 
 
 def part2(
-    modelFilePath: str, outputFilePath: str = "googleNewsSimilarityResults.txt"
+    model: KeyedVectors, outputFilePath: str = "googleNewsSimilarityResults.txt"
 ) -> None:
     testSimilarity: List[str] = [
         "human",
@@ -134,15 +131,13 @@ def part2(
         "computer",
     ]
 
-    wordVectors: KeyedVectors = KeyedVectors.load(modelFilePath)
-
     print(f"Writing similarity test results to {outputFilePath}...")
 
     testWord: str
     with open(file=outputFilePath, mode="w") as sqr:
         for testWord in testSimilarity:
             similarWords: List[Tuple[str, float]] = similarityQuery(
-                word=testWord, wv=wordVectors, topN=100
+                word=testWord, wv=model, topN=100
             )
 
             similarWords: List[str] = [
@@ -155,15 +150,11 @@ def part2(
         sqr.close()
 
 
-def part3(
-    modelFilePath: str, outputFilePath: str = "googleNewsSpearmanResults.txt"
-) -> float:
+def part3(model: KeyedVectors) -> float:
     wordsimData: List[Tuple[str, str, float]] = []
     googleNewsData: List[Tuple[str, str, float]] = []
 
     wordsimPath: str = "wordsim353_sim_rel/wordsim_similarity_goldstandard.txt"
-
-    wordVectors: KeyedVectors = KeyedVectors.load(fname=modelFilePath)
 
     print("Reading wordsim file...")
     line: str
@@ -177,7 +168,7 @@ def part3(
     for grouping in wordsimData:
         word1: str = grouping[0]
         word2: str = grouping[1]
-        score: float = wordVectors.similarity(w1=word1, w2=word2)
+        score: float = model.similarity(w1=word1, w2=word2)
         googleNewsData.append((word1, word2, score))
 
     wordsimScores: List[float] = [score for _, _, score in wordsimData]
@@ -186,6 +177,10 @@ def part3(
     spearmanScore: SignificanceResult = spearmanr(a=wordsimScores, b=googleNewsScores)
 
     return spearmanScore.statistic
+
+
+def part4() -> None:
+    pass
 
 
 def main() -> None:
@@ -201,9 +196,12 @@ def main() -> None:
         downloadGoogleNews(modelFilePath=googleNewsModelFilePath)
         quit(2)
 
-    # part1(modelFilePath=customModelFilePath)
-    # part2(modelFilePath=googleNewsModelFilePath)
-    print(f"Spearman Score: {part3(modelFilePath=googleNewsModelFilePath)}")
+    customModel: KeyedVectors = Word2Vec.load(customModelFilePath).wv
+    googleNewsModel: KeyedVectors = KeyedVectors.load(googleNewsModelFilePath)
+
+    part1(model=customModel)
+    part2(model=googleNewsModel)
+    print(f"Spearman Score: {part3(model=googleNewsModel)}")
 
 
 if __name__ == "__main__":
