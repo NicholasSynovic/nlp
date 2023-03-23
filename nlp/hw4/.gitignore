@@ -2,3 +2,4 @@ corpus.zip
 wikitext-103/*
 models/*
 !models/.gitkeep
+wordsim353_sim_rel/*

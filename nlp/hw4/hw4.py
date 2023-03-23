@@ -4,6 +4,8 @@ from typing import List, Tuple
 from gensim import downloader, utils
 from gensim.models import KeyedVectors, Word2Vec
 from progress.bar import Bar
+from scipy.stats import spearmanr
+from scipy.stats._stats_py import SignificanceResult
 
 
 class MyCorpus:
@@ -153,6 +155,39 @@ def part2(
         sqr.close()
 
 
+def part3(
+    modelFilePath: str, outputFilePath: str = "googleNewsSpearmanResults.txt"
+) -> float:
+    wordsimData: List[Tuple[str, str, float]] = []
+    googleNewsData: List[Tuple[str, str, float]] = []
+
+    wordsimPath: str = "wordsim353_sim_rel/wordsim_similarity_goldstandard.txt"
+
+    wordVectors: KeyedVectors = KeyedVectors.load(fname=modelFilePath)
+
+    print("Reading wordsim file...")
+    line: str
+    for line in open(file=wordsimPath, mode="r"):
+        data: List[str] = line.strip().split(sep="\t")
+        foo: Tuple[str, str, float] = (data[0], data[1], float(data[2]))
+        wordsimData.append(foo)
+
+    print("Getting similarity of words from the Google News dataset...")
+    grouping: Tuple[str, str, float]
+    for grouping in wordsimData:
+        word1: str = grouping[0]
+        word2: str = grouping[1]
+        score: float = wordVectors.similarity(w1=word1, w2=word2)
+        googleNewsData.append((word1, word2, score))
+
+    wordsimScores: List[float] = [score for _, _, score in wordsimData]
+    googleNewsScores: List[float] = [score for _, _, score in googleNewsData]
+
+    spearmanScore: SignificanceResult = spearmanr(a=wordsimScores, b=googleNewsScores)
+
+    return spearmanScore.statistic
+
+
 def main() -> None:
     customModelFilePath: str = "models/w2v.gensim"
     googleNewsModelFilePath: str = "models/googleNews.keyedvectors.gensim"
@@ -166,8 +201,9 @@ def main() -> None:
         downloadGoogleNews(modelFilePath=googleNewsModelFilePath)
         quit(2)
 
-    part1(modelFilePath=customModelFilePath)
-    part2(modelFilePath=googleNewsModelFilePath)
+    # part1(modelFilePath=customModelFilePath)
+    # part2(modelFilePath=googleNewsModelFilePath)
+    print(f"Spearman Score: {part3(modelFilePath=googleNewsModelFilePath)}")
 
 
 if __name__ == "__main__":
