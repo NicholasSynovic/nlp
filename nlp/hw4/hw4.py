@@ -179,8 +179,28 @@ def part3(model: KeyedVectors) -> float:
     return spearmanScore.statistic
 
 
-def part4() -> None:
-    pass
+def part4(model: KeyedVectors, outputFilePath: str = "analogiesResult.txt") -> None:
+    queries: List[float] = [
+        model["king"] - model["man"] + model["woman"],  # queen
+        model["king"] - model["country"],  # man
+        model["sky"] - model["sun"] + model["moon"],  # night
+        model["bicycle"] + model["engine"],  # motorcycle
+        model["dog"] + model["whiskers"] - model["fun"],  # cat
+    ]
+
+    query: float
+    with open(file=outputFilePath, mode="w") as ar:
+        for query in queries:
+            similarWords: List[Tuple[str, float]] = model.most_similar([query], topn=1)
+
+            similarWords: List[str] = [
+                ",".join([word, str(similarity)]) + "\n"
+                for word, similarity in similarWords
+            ]
+
+            similarWords.append("\n")
+            ar.writelines(similarWords)
+        ar.close()
 
 
 def main() -> None:
@@ -199,9 +219,10 @@ def main() -> None:
     customModel: KeyedVectors = Word2Vec.load(customModelFilePath).wv
     googleNewsModel: KeyedVectors = KeyedVectors.load(googleNewsModelFilePath)
 
-    part1(model=customModel)
-    part2(model=googleNewsModel)
-    print(f"Spearman Score: {part3(model=googleNewsModel)}")
+    # part1(model=customModel)
+    # part2(model=googleNewsModel)
+    # print(f"Spearman Score: {part3(model=googleNewsModel)}")
+    part4(model=googleNewsModel)
 
 
 if __name__ == "__main__":
