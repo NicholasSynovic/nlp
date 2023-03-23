@@ -78,18 +78,8 @@ def downloadGoogleNews(
     model.save(modelFilePath)
 
 
-def main() -> None:
-    customModelFilePath: str = "models/w2v.gensim"
-    googleNewsModelFilePath: str = "models/googleNews.keyedvectors.gensim"
-    args: Namespace = getArgs()
-
-    if args.train:
-        train(customModelFilePath)
-        quit(1)
-
-    if args.download_google_news:
-        downloadGoogleNews(modelFilePath=googleNewsModelFilePath)
-        quit(2)
+def part1(modelFilePath: str) -> None:
+    outputFilePath: str = "similarityQueryResults.txt"
 
     testSimilarity: List[str] = [
         "science",
@@ -104,11 +94,13 @@ def main() -> None:
         "the",
     ]
 
-    w2v: Word2Vec = Word2Vec.load(customModelFilePath)
+    w2v: Word2Vec = Word2Vec.load(modelFilePath)
     wordVectors: KeyedVectors = w2v.wv
 
+    print(f"Writing similarity test results to {outputFilePath}...")
+
     testWord: str
-    with open(file="similarityQueryResults.txt", mode="w") as sqr:
+    with open(file=outputFilePath, mode="w") as sqr:
         for testWord in testSimilarity:
             similarWords: List[Tuple[str, float]] = similarityQuery(
                 word=testWord, wv=wordVectors
@@ -122,6 +114,22 @@ def main() -> None:
             similarWords.append("\n")
             sqr.writelines(similarWords)
         sqr.close()
+
+
+def main() -> None:
+    customModelFilePath: str = "models/w2v.gensim"
+    googleNewsModelFilePath: str = "models/googleNews.keyedvectors.gensim"
+    args: Namespace = getArgs()
+
+    if args.train:
+        train(customModelFilePath)
+        quit(1)
+
+    if args.download_google_news:
+        downloadGoogleNews(modelFilePath=googleNewsModelFilePath)
+        quit(2)
+
+    part1(modelFilePath=customModelFilePath)
 
 
 if __name__ == "__main__":
