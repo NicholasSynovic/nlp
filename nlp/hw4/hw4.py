@@ -116,6 +116,43 @@ def part1(modelFilePath: str) -> None:
         sqr.close()
 
 
+def part2(
+    modelFilePath: str, outputFilePath: str = "googleNewsSimilarityResults.txt"
+) -> None:
+    testSimilarity: List[str] = [
+        "human",
+        "bird",
+        "ball",
+        "soccer",
+        "tee",
+        "tea",
+        "England",
+        "Trump",
+        "tiny",
+        "computer",
+    ]
+
+    wordVectors: KeyedVectors = KeyedVectors.load(modelFilePath)
+
+    print(f"Writing similarity test results to {outputFilePath}...")
+
+    testWord: str
+    with open(file=outputFilePath, mode="w") as sqr:
+        for testWord in testSimilarity:
+            similarWords: List[Tuple[str, float]] = similarityQuery(
+                word=testWord, wv=wordVectors, topN=100
+            )
+
+            similarWords: List[str] = [
+                ",".join([word, str(similarity)]) + "\n"
+                for word, similarity in similarWords
+            ]
+
+            similarWords.append("\n")
+            sqr.writelines(similarWords)
+        sqr.close()
+
+
 def main() -> None:
     customModelFilePath: str = "models/w2v.gensim"
     googleNewsModelFilePath: str = "models/googleNews.keyedvectors.gensim"
@@ -130,6 +167,7 @@ def main() -> None:
         quit(2)
 
     part1(modelFilePath=customModelFilePath)
+    part2(modelFilePath=googleNewsModelFilePath)
 
 
 if __name__ == "__main__":
