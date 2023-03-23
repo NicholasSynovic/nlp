@@ -1,7 +1,7 @@
 from argparse import ArgumentParser, BooleanOptionalAction, Namespace
 from typing import List, Tuple
 
-from gensim import utils
+from gensim import downloader, utils
 from gensim.models import KeyedVectors, Word2Vec
 from progress.bar import Bar
 
@@ -37,7 +37,17 @@ def getArgs() -> Namespace:
         usage="Homework 4 solution for COMP 429",
         epilog="Written by Nicholas M. Synovic",
     )
-    parser.add_argument("--train", action=BooleanOptionalAction)
+    parser.add_argument(
+        "--train",
+        action=BooleanOptionalAction,
+        help="Initiate training of custom Word2Vec model",
+    )
+    parser.add_argument(
+        "--download-google-news",
+        action=BooleanOptionalAction,
+        help="Download Google News Word2Vec model and save to disk",
+    )
+
     return parser.parse_args()
 
 
@@ -58,13 +68,28 @@ def similarityQuery(
     return wv.most_similar([vector], topn=topN)
 
 
+def downloadGoogleNews(
+    modelFilePath: str = "models/googleNews.keyedvectors.gensim",
+) -> None:
+    print("Downloading word2vec-google-news-300...")
+    model: KeyedVectors = downloader.load(name="word2vec-google-news-300")
+
+    print(f"Saving model to {modelFilePath}...")
+    model.save(modelFilePath)
+
+
 def main() -> None:
-    modelFilePath: str = "models/w2v.gensim"
+    customModelFilePath: str = "models/w2v.gensim"
+    googleNewsModelFilePath: str = "models/googleNews.keyedvectors.gensim"
     args: Namespace = getArgs()
 
     if args.train:
-        train(modelFilePath)
+        train(customModelFilePath)
         quit(1)
+
+    if args.download_google_news:
+        downloadGoogleNews(modelFilePath=googleNewsModelFilePath)
+        quit(2)
 
     testSimilarity: List[str] = [
         "science",
@@ -79,7 +104,7 @@ def main() -> None:
         "the",
     ]
 
-    w2v: Word2Vec = Word2Vec.load(modelFilePath)
+    w2v: Word2Vec = Word2Vec.load(customModelFilePath)
     wordVectors: KeyedVectors = w2v.wv
 
     testWord: str
@@ -88,10 +113,12 @@ def main() -> None:
             similarWords: List[Tuple[str, float]] = similarityQuery(
                 word=testWord, wv=wordVectors
             )
+
             similarWords: List[str] = [
                 ",".join([word, str(similarity)]) + "\n"
                 for word, similarity in similarWords
             ]
+
             similarWords.append("\n")
             sqr.writelines(similarWords)
         sqr.close()
