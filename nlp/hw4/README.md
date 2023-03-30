@@ -12,17 +12,17 @@
   - [How To Run](#how-to-run)
     - [Training Custom Model](#training-custom-model)
     - [Downloading the Google News Word2Vec model](#downloading-the-google-news-word2vec-model)
+    - [Running the Homework Assignment](#running-the-homework-assignment)
     - [Running Tests](#running-tests)
   - [Part 1 Results](#part-1-results)
     - [Similarity Scores](#similarity-scores)
   - [Part 2 Results](#part-2-results)
-    - [TODO Explain why word2vec considers these words similar](#todo-explain-why-word2vec-considers-these-words-similar)
   - [Part 3 Results](#part-3-results)
   - [Part 4 Results](#part-4-results)
 
 ## About
 
-The homework assignment description can be found in [hw4.pdf](hw3.pdf). The
+The homework assignment description can be found in [hw4.pdf](hw4.pdf). The
 [`hw4.py`](hw4.py) script is the executable code to run to generate results.
 
 ### Datasets
@@ -66,6 +66,10 @@ directory.
 
 **NOTE**: The model is saved within the `models` directory.
 
+### Running the Homework Assignment
+
+- `python3.10 hw4.py`
+
 ### Running Tests
 
 - `python3.10 hw4.py`
@@ -82,7 +86,7 @@ I generated the similarity scores for the following words using my custom
 Word2Vec vectorizer trained on the
 [WikiText 103 dataset](https://blog.salesforceairesearch.com/the-wikitext-long-term-dependency-language-modeling-dataset/):
 
-`science, math, test, man, woman, king, you, apple, queen, the`
+- `science, math, test, man, woman, king, you, apple, queen, the`
 
 ### Similarity Scores
 
@@ -208,7 +212,16 @@ News Word2Vec model from `gensim`:
 The results of these words can be found in
 [`googleNewsSimilarityResults.txt`](googleNewsSimilarityResults.txt)
 
-### TODO Explain why word2vec considers these words similar
+The Google News Word2Vec model considers these words similar for two reasons:
+
+1. When learning from the Google News dataset, the Word2Vec model can only learn
+   so much about the relationships between words. In other words, if a
+   relationship between two words does not exist or is uncommon within the
+   dataset, the Word2Vec model will not identify that relationship.
+1. The cosine distance between the word embeddings (when treated as vectors) are
+   most similar compared to other words. Cosine distance is a measurement of how
+   parallel two vectors are, regardless of magnitude. Thus, the more similar two
+   words are, the more parallel their vectors are in a multi-dimensional space.
 
 ## Part 3 Results
 
